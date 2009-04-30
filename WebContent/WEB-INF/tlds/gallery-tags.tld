@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE taglib PUBLIC "-//Sun Microsystems, Inc.//DTD JSP Tag Library 1.2//EN" "http://java.sun.com/dtd/web-jsptaglibrary_1_2.dtd"> 
+<taglib> 
+	<tlib-version>2.2.3</tlib-version> 
+	<jsp-version>2.1</jsp-version>
+	<short-name>g</short-name>
+	<uri>gallery-tags</uri>
+	<display-name>JSP Gallery Tags</display-name>
+	<description>Easily add photo galleries to JSP pages, using Lightbox 2 to display the images.</description>
+
+
+	<tag> 
+		<name>header</name> 
+		<tag-class>org.homeunix.thecave.moss.jsp.gallery.GalleryHeaderTag</tag-class>
+		<description>Lightbox Include files - must be placed in HTML Header for the gallery tag to work</description> 
+	</tag>
+	
+	<tag> 
+		<name>gallery</name> 
+		<tag-class>org.homeunix.thecave.moss.jsp.gallery.GalleryTag</tag-class>
+		<description>Creates a gallery from specified image files</description>
+
+		<attribute>
+			<name>packageName</name>
+			<required>true</required>
+		</attribute>
+		<attribute>
+			<name>thumbSize</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>fullSize</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>thumbQuality</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>fullQuality</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>matchRegex</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>excluderRegex</name>
+			<required>false</required>
+		</attribute>
+	</tag>
+
+</taglib>
