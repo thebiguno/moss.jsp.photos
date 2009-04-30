@@ -50,9 +50,9 @@ class GalleryManager {
 	/**
 	 * Given a request URI, returns the image associated with the request.
 	 * The request URI must be in the form:
-	 *  /galleries/path/to/gallery/baseimage_ext_size_quality.jpg
-	 * where path/to/gallery is the path to the source gallery, relative
-	 * to the context root, basename is the image name, ext is the original 
+	 *  /galleries/package/name/baseimage_ext_size_quality.jpg
+	 * where package/name is the path to the source gallery, relative
+	 * to WEB-INF/galleries, basename is the image name, ext is the original 
 	 * image extension, size is the size of the scaled version, and quality 
 	 * is the quality of the scaled version (100 is full quality (largest size),
 	 * 0 is lowest quality (smallest image). 
@@ -80,21 +80,6 @@ class GalleryManager {
 		String ext = split[split.length - 3];
 		String baseName = requestUriFile.replaceAll("_" + ext + "_" + sizeString + "_" + qualityString, "");
 		
-		return getImageInputStream(packageName, baseName, ext, size, quality);
-	}
-	
-	/**
-	 * Returns an input stream according to packageName, baseName, ext, size, 
-	 * and quality.
-	 * @param packageName
-	 * @param baseName
-	 * @param ext
-	 * @param size
-	 * @param quality
-	 * @param context
-	 * @return
-	 */
-	public InputStream getImageInputStream(String packageName, String baseName, String ext, int size, float quality){
 		//If context is null, we assume we are running from a .war; otherwise, we
 		// can access the files within context.
 		String cacheKey = packageName + baseName + "_" + ext + "_" + size + "_" + ((int) (quality * 100)) + ".jpg"; 
@@ -102,10 +87,10 @@ class GalleryManager {
 		//If the image has not been cached, we need to convert it and cache it.
 		if (cache.get(cacheKey) == null){
 			//We load source images from the classpath
-			InputStream is = GalleryManager.class.getResourceAsStream(packageName + baseName + "." + ext);
+			InputStream is = config.getServletContext().getResourceAsStream("/WEB-INF/galleries" + packageName + baseName + "." + ext);
 
 			if (is == null)
-				throw new RuntimeException("Could not find image.");
+				throw new RuntimeException("Could not find image");
 
 			conversionKeys.add(cacheKey);
 			byte[] cachedImage = convertImage(is, size, quality);

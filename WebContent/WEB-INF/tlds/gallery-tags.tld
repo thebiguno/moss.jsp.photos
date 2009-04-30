@@ -4,7 +4,7 @@
 	<tlib-version>2.2.3</tlib-version> 
 	<jsp-version>2.1</jsp-version>
 	<short-name>g</short-name>
-	<uri>gallery-tags</uri>
+	<uri>/gallery-tags</uri>
 	<display-name>JSP Gallery Tags</display-name>
 	<description>Easily add photo galleries to JSP pages, using Lightbox 2 to display the images.</description>
 
