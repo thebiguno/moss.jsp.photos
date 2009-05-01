@@ -9,11 +9,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.servlet.FilterConfig;
@@ -34,8 +29,8 @@ import com.drew.metadata.exif.ExifDirectory;
  */
 class GalleryManager {
 
-	private final Set<String> conversionKeys = Collections.synchronizedSet(new HashSet<String>());
-	private final Map<String, byte[]> cache = Collections.synchronizedMap(new HashMap<String, byte[]>()); 
+//	private final Set<String> conversionKeys = Collections.synchronizedSet(new HashSet<String>());
+//	private final Map<String, byte[]> cache = Collections.synchronizedMap(new HashMap<String, byte[]>()); 
 	
 	private GalleryManager() {}
 
@@ -82,24 +77,24 @@ class GalleryManager {
 		
 		//If context is null, we assume we are running from a .war; otherwise, we
 		// can access the files within context.
-		String cacheKey = packageName + baseName + "_" + ext + "_" + size + "_" + ((int) (quality * 100)) + ".jpg"; 
+//		String cacheKey = packageName + baseName + "_" + ext + "_" + size + "_" + ((int) (quality * 100)) + ".jpg"; 
 
-		//If the image has not been cached, we need to convert it and cache it.
-		if (cache.get(cacheKey) == null){
+//		//If the image has not been cached, we need to convert it and cache it.
+//		if (cache.get(cacheKey) == null){
 			//We load source images from the classpath
 			InputStream is = config.getServletContext().getResourceAsStream("/WEB-INF/galleries" + packageName + baseName + "." + ext);
 
 			if (is == null)
 				throw new RuntimeException("Could not find image");
 
-			conversionKeys.add(cacheKey);
-			byte[] cachedImage = convertImage(is, size, quality);
-			cache.put(cacheKey, cachedImage);
-			conversionKeys.remove(cacheKey);
-		}
+//			conversionKeys.add(cacheKey);
+			return new ByteArrayInputStream(convertImage(is, size, quality));
+//			cache.put(cacheKey, cachedImage);
+//			conversionKeys.remove(cacheKey);
+//		}
 		
 		//Return the (now) cached image.
-		return new ByteArrayInputStream(cache.get(cacheKey));
+//		return new ByteArrayInputStream(cache.get(cacheKey));
 	}
 	
 	/**
