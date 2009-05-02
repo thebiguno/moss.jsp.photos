@@ -41,11 +41,23 @@
 			<required>false</required>
 		</attribute>
 		<attribute>
+			<name>showTitle</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>includeLink</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>fullQualityTitleLink</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
 			<name>matchRegex</name>
 			<required>false</required>
 		</attribute>
 		<attribute>
-			<name>excluderRegex</name>
+			<name>excludeRegex</name>
 			<required>false</required>
 		</attribute>
 	</tag>

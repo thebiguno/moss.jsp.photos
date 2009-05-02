@@ -1,7 +1,9 @@
 package org.homeunix.thecave.moss.jsp.gallery;
 
 import java.io.IOException;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
@@ -15,12 +17,39 @@ public class GalleryTag implements Tag {
 	private String packageName = ".";
 	private int thumbSize = 128;
 	private int fullSize = 800;
-	private float thumbQuality = 0.5f;
-	private float fullQuality = 0.75f;
+	private int thumbQuality = 50;
+	private int fullQuality = 75;
+	
+	private boolean showTitle = false;
+	private boolean includeLink = true;
+	private boolean fullQualityTitleLink = false;
 
 	private String matchRegex = ".*png|.*jpg|.*jpeg|.*bmp|.*png|.*gif";
 	private String excludeRegex = "\\..*"; //Hide all dot files
 
+	public boolean isFullQualityTitleLink() {
+		return fullQualityTitleLink;
+	}
+	
+	public void setFullQualityTitleLink(boolean fullQualityTitleLink) {
+		this.fullQualityTitleLink = fullQualityTitleLink;
+	}
+	
+	public boolean isIncludeLink() {
+		return includeLink;
+	}
+	
+	public boolean isShowTitle() {
+		return showTitle;
+	}
+	
+	public void setIncludeLink(boolean includeLink) {
+		this.includeLink = includeLink;
+	}
+	
+	public void setShowTitle(boolean showTitle) {
+		this.showTitle = showTitle;
+	}
 
 	public String getPackageName() {
 		return packageName;
@@ -46,19 +75,19 @@ public class GalleryTag implements Tag {
 		this.fullSize = fullSize;
 	}
 
-	public float getThumbQuality() {
+	public int getThumbQuality() {
 		return thumbQuality;
 	}
 
-	public void setThumbQuality(float thumbQuality) {
+	public void setThumbQuality(int thumbQuality) {
 		this.thumbQuality = thumbQuality;
 	}
 
-	public float getFullQuality() {
+	public int getFullQuality() {
 		return fullQuality;
 	}
 
-	public void setFullQuality(float fullQuality) {
+	public void setFullQuality(int fullQuality) {
 		this.fullQuality = fullQuality;
 	}
 
@@ -90,31 +119,44 @@ public class GalleryTag implements Tag {
 		return parent;
 	}
 
+	@SuppressWarnings("unchecked")
 	public int doStartTag() throws JspException {
 		try {
-//			String relativePath = pageContext.getServletContext().getRealPath("/");
-//			File f = new File(relativePath + File.separator + getLocation());
-
-			pageContext.getOut().write("\n\n<div class='gallery'>\n");
-
-//			Package pkg = Package.getPackage("img");
-//			ClassLoader classLoader = GalleryTag.class.getClassLoader();
-//			
-//			System.out.println(pkg);
+			pageContext.getOut().println("<div class='gallery'>");
+			pageContext.getOut().println("<div class='gallery-start'/>");
 			
-			Set<?> images = pageContext.getServletContext().getResourcePaths("/WEB-INF/galleries" + getPackageName());
+			List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF/galleries" + getPackageName()));
+			Collections.sort(images);
 			
-			for (Object object : images) {
-				String imagePath = object.toString();
-				pageContext.getOut().write("<div class='gallery-image'>\n");
-
-				pageContext.getOut().write("<a href='" + getUrlFromFile(imagePath, getFullSize(), getFullQuality()) + "' rel='lightbox[" + getPackageName().replaceAll("/", "_") + "]'>");
-				pageContext.getOut().write("<img src='" + getUrlFromFile(imagePath, getThumbSize(), getThumbQuality()) + "' alt=''/>");
-				pageContext.getOut().write("</a>");
-
-				pageContext.getOut().write("</div> <!-- gallery-image -->\n");
+			for (String imagePath : images) {
+				if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
+					pageContext.getOut().println("\n\n\n<div class='gallery-image'>");
+					pageContext.getOut().println("<div class='gallery-frame'>");
+					if (isIncludeLink()){
+						pageContext.getOut().println("<a href='" + getUrlFromFile(imagePath, getFullSize(), getFullQuality()) + "' rel='lightbox[" + getPackageName().replaceAll("/", "_") + "]'>");
+					}
+					pageContext.getOut().println("<img src='" + getUrlFromFile(imagePath, getThumbSize(), getThumbQuality()) + "' alt=''/>");
+					if (isIncludeLink()){
+						pageContext.getOut().println("</a>");
+					}
+					if (isShowTitle()){
+						pageContext.getOut().print("<div class='gallery-title'>");
+						pageContext.getOut().print(imagePath.replaceAll("^/.*/", "").replaceAll("\\.[a-zA-Z0-9]+", ""));
+						if (isFullQualityTitleLink()){
+							pageContext.getOut().print("<div class='gallery-image-download'>");
+							pageContext.getOut().print("<a href='" + getUrlFromFile(imagePath, 0, 100) + "'>");
+							pageContext.getOut().print("Download High Resolution Image");
+							pageContext.getOut().print("</a>");
+							pageContext.getOut().println("</div> <!--gallery-image-download-->");
+						}
+						pageContext.getOut().println("</div> <!--gallery-title-->");
+					}
+					pageContext.getOut().println("</div> <!--gallery-frame-->");
+					pageContext.getOut().println("</div> <!-- gallery-image -->");
+				}
 			}
 
+			pageContext.getOut().println("<div class='gallery-end'/>");
 			pageContext.getOut().write("</div> <!-- gallery -->\n");
 		} 
 		catch(IOException ioe) {
@@ -132,12 +174,12 @@ public class GalleryTag implements Tag {
 		parent = null;
 	}
 
-	private String getUrlFromFile(String path, int size, float quality){
+	private String getUrlFromFile(String path, int size, int quality){
 		String packageName = path.replaceAll("^/WEB-INF/galleries", "").replaceAll("/[^/]+$", "");
 		String baseName = path.replaceAll("^/.*/", "").replaceAll("\\.[a-zA-Z0-9]+", "");
 		String ext = path.replaceAll("^.+\\.", "");
 		
-		return pageContext.getServletContext().getContextPath() 
+		return (pageContext.getServletContext().getContextPath() 
 			+ ImageFilter.GALLERIES_PATH 
 			+ packageName
 			+ "/"
@@ -147,16 +189,7 @@ public class GalleryTag implements Tag {
 			+ "_"
 			+ size 
 			+ "_" 
-			+ ((int) (quality * 100)) 
-			+ ".jpg";
+			+ quality 
+			+ ".jpg").replaceAll(" ", "%20");
 	}
-
-//	private class ImageFilenameFilter implements FilenameFilter {
-//		public boolean accept(File dir, String name) {
-//			//If the name matches the include regex, does not 
-//			// match the exclude regex, we include it.
-//			return name.toLowerCase().matches(getMatchRegex()) &&
-//			!name.toLowerCase().matches(getExcludeRegex()); 
-//		}
-//	}
 }
