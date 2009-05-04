@@ -49,7 +49,13 @@ public class ImageFilter implements Filter {
 		this.config = config;
 	}
 	
-	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {		
+	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
+		//Verify that this is an HttpServletRequest, and ignore those which are not.
+		if (!(req instanceof HttpServletRequest)){
+			chain.doFilter(req, res);
+			return;
+		}
+		
 		//Built in Lightbox components
 		for (String path : new String[]{JAVASCRIPT_PATH, CSS_PATH, IMAGE_PATH}) {
 			if (((HttpServletRequest) req).getRequestURI().matches(config.getServletContext().getContextPath() + path + "/.*\\.[a-zA-Z]{2,3}")){
