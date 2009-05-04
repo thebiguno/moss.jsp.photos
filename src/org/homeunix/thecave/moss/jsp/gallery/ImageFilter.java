@@ -62,7 +62,7 @@ public class ImageFilter implements Filter {
 			}
 		}
 		
-		//Gallery images - located under /galleries/<location>/filename
+		//Gallery images - located under /galleries/<packageName>/filename
 		if (((HttpServletRequest) req).getRequestURI().matches(config.getServletContext().getContextPath() + GALLERIES_PATH + "/.+" )){
 			Util.copyStream(getImageInputStream(((HttpServletRequest) req).getRequestURI(), config), res.getOutputStream());
 			return;
@@ -87,7 +87,7 @@ public class ImageFilter implements Filter {
 	 */
 	private InputStream getImageInputStream(String requestURI, FilterConfig config){
 		//Remove the /galleries prefix
-		String requestUriWithoutContextAndGalleriesPrefix = requestURI.replaceAll("^" + config.getServletContext().getContextPath() + ImageFilter.GALLERIES_PATH, "");
+		String requestUriWithoutContextAndGalleriesPrefix = requestURI.replaceAll("^" + config.getServletContext().getContextPath() + GALLERIES_PATH, "");
 
 		//Find path to gallery source
 		String packageName = requestUriWithoutContextAndGalleriesPrefix.replaceAll("[^/]+$", "");
@@ -98,14 +98,16 @@ public class ImageFilter implements Filter {
 			return new ByteArrayInputStream(new byte[0]);
 
 		String qualityString = split[split.length - 1];
-		String sizeString = split[split.length - 2];
+		String sizeAndTypeString = split[split.length - 2];
+		String sizeType = sizeAndTypeString.replaceAll("[^a-z]", ""); //Size type will determine what sort of sizing algorithm to use.
+		String sizeString = sizeAndTypeString.replaceAll("[^0-9]", "");
 		int size = Integer.parseInt(sizeString);
 		int quality = Integer.parseInt(qualityString);
 		String ext = split[split.length - 3];
-		String baseName = requestUriFile.replaceAll("_" + ext + "_" + sizeString + "_" + qualityString, "");
+		String baseName = requestUriFile.replaceAll("_" + ext + "_" + sizeAndTypeString + "_" + qualityString, "");
 
 		//Check the gallery for gallery-specific overrides on max / min size and quality.
-		InputStream settings = config.getServletContext().getResourceAsStream("/WEB-INF/galleries" + packageName + "/settings.xml");
+		InputStream settings = config.getServletContext().getResourceAsStream("/WEB-INF" + GALLERIES_PATH + packageName + "/settings.xml");
 		if (settings != null){
 			try {
 				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -142,12 +144,12 @@ public class ImageFilter implements Filter {
 			quality = 0;
 		
 		//We load source images from the context path
-		InputStream is = config.getServletContext().getResourceAsStream(("/WEB-INF/galleries" + packageName + baseName + "." + ext).replaceAll("%20", " "));
+		InputStream is = config.getServletContext().getResourceAsStream(("/WEB-INF" + GALLERIES_PATH + packageName + baseName + "." + ext).replaceAll("%20", " "));
 
 		if (is == null)
 			throw new RuntimeException("Could not find image");
 
-		return new ByteArrayInputStream(convertImage(is, size, quality));
+		return new ByteArrayInputStream(convertImage(is, size, sizeType, quality));
 	}
 	
 	private Integer getSettings(Document doc, String element, String attribute){
@@ -176,7 +178,7 @@ public class ImageFilter implements Filter {
 	 * @param quality
 	 * @return
 	 */
-	private byte[] convertImage(InputStream is, int size, int quality){
+	private byte[] convertImage(InputStream is, int size, String sizeType, int quality){
 		try {
 			BufferedInputStream bis = new BufferedInputStream(is);
 			bis.mark(bis.available() + 1);
@@ -191,13 +193,13 @@ public class ImageFilter implements Filter {
 			}
 			catch (JpegProcessingException jpe) {}
 
-			//			String title = null;
+			//String title = null;
 			int rotationDegrees = 0;
 
 			//Try to load metadata
 			if (metadata != null){
-				//				Directory iptcDirectory = metadata.getDirectory(IptcDirectory.class);
-				//				title = iptcDirectory.getString(IptcDirectory.TAG_HEADLINE);
+				//Directory iptcDirectory = metadata.getDirectory(IptcDirectory.class);
+				//title = iptcDirectory.getString(IptcDirectory.TAG_HEADLINE);
 
 				Directory exifDirectory = metadata.getDirectory(ExifDirectory.class);
 				try {
@@ -223,23 +225,31 @@ public class ImageFilter implements Filter {
 				catch (MetadataException me){} //No big deal if metadata is not set
 			}
 
-			//We increase the size of the image proportionate to the aspect ratio.  This
-			// prevents square images from taking up much more screen real estate (in
-			// square units) than their tall / wide equivalents.
 			double w = bi.getWidth();
 			double h = bi.getHeight();
 			
-//			double x = Math.sqrt((size * size * a * a) / (a * a + b* b));
-//			double y = Math.sqrt((size * size * b * b) / (a * a + b* b));
-			
-			double angle = Math.atan(h / w);
-			
-			double newHeight = size * Math.sin(angle);
-			double newWidth = size * Math.cos(angle);
-			
-			double scaleFactor = 1 + Math.log10((Math.max(w, h) / Math.min(w, h)));
+			if ("w".equals(sizeType)){
+				if (h > w)
+					size = (int) ((size / h) * w); 
+			}
+			else if ("h".equals(sizeType)){
+				if (w > h)
+					size = (int) ((size / h) * w); 				
+			}
+			else {
+				//We calculate the size of the new image based off the hypotenuse,
+				// scaled such that longer / thin images (those with a higher width 
+				// to height ratio / height to width ratio, depending on which is larger)
+				// get scaled up more than square images.
+				double angle = Math.atan(h / w);
 
-			size = (int) (Math.max(newWidth, newHeight) * scaleFactor);
+				double newHeight = size * Math.sin(angle);
+				double newWidth = size * Math.cos(angle);
+
+				double scaleFactor = 1 + Math.log10((Math.max(w, h) / Math.min(w, h)));
+
+				size = (int) (Math.max(newWidth, newHeight) * scaleFactor);
+			}
 			
 			if (size != 0)
 				bi = ImageFunctions.scaleImage(bi, size);
