@@ -23,7 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.apache.commons.net.io.Util;
+import org.homeunix.thecave.moss.common.StreamUtil;
 import org.homeunix.thecave.moss.image.ImageFunctions;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -62,7 +62,7 @@ public class ImageFilter implements Filter {
 				String name = ((HttpServletRequest) req).getRequestURI().replaceAll(config.getServletContext().getContextPath() + path + "/", "");
 				InputStream is = ImageFilter.class.getResourceAsStream("resources/" + name);
 				if (is != null){
-					Util.copyStream(is, res.getOutputStream());
+					StreamUtil.copyStream(is, res.getOutputStream());
 					return;
 				}
 			}
@@ -70,7 +70,7 @@ public class ImageFilter implements Filter {
 		
 		//Gallery images - located under /galleries/<packageName>/filename
 		if (((HttpServletRequest) req).getRequestURI().matches(config.getServletContext().getContextPath() + GALLERIES_PATH + "/.+" )){
-			Util.copyStream(getImageInputStream(((HttpServletRequest) req).getRequestURI(), config), res.getOutputStream());
+			StreamUtil.copyStream(getImageInputStream(((HttpServletRequest) req).getRequestURI(), config), res.getOutputStream());
 			return;
 		}
 		
