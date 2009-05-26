@@ -2,7 +2,7 @@
 <!DOCTYPE project [
 <!ENTITY baseBuild SYSTEM "../org.homeunix.thecave.build/baseBuild.xml.inc">
 ]>
-<project name="JSP Gallery" default="jar-taglib" basedir=".">
+<project name="JSP Gallery" default="jar" basedir=".">
 
 	<!-- Version number and other build-specific properties -->
 	<property file="etc/build.properties"/>
