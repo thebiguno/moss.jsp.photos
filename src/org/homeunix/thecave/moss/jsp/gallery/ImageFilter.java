@@ -92,6 +92,9 @@ public class ImageFilter implements Filter {
 	 * @return
 	 */
 	private InputStream getImageInputStream(String requestURI, FilterConfig config){
+		//Set the thread priority to be lower, so that other requests get processed in a reasonable time.
+		Thread.currentThread().setPriority(Thread.NORM_PRIORITY - 1);
+		
 		//Remove the /galleries prefix
 		String requestUriWithoutContextAndGalleriesPrefix = requestURI.replaceAll("^" + config.getServletContext().getContextPath() + GALLERIES_PATH, "");
 
