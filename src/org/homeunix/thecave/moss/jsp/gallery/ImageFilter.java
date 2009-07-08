@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -187,8 +188,10 @@ public class ImageFilter implements Filter {
 	 * @param quality
 	 * @return
 	 */
+	private static Semaphore semaphore = new Semaphore(2);
 	private byte[] convertImage(InputStream is, int size, String sizeType, int quality){
 		try {
+			semaphore.acquire();
 			BufferedInputStream bis = new BufferedInputStream(is);
 			bis.mark(bis.available() + 1);
 
@@ -269,11 +272,15 @@ public class ImageFilter implements Filter {
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			ImageFunctions.writeImage(bi, bos, (quality / 100f), "jpg");
 			bos.flush();
-
+			semaphore.release();
 			return bos.toByteArray(); 
 		}
 		catch (IOException ioe){
+			semaphore.release();
 			throw new RuntimeException(ioe);
+		}
+		catch (InterruptedException ie){
+			throw new RuntimeException(ie);
 		}
 	}
 	

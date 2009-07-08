@@ -1,3 +1,6 @@
+1.0.2.0 - July 7 2009
+-Added a semaphore (currently hardcoded to 2 permits; will look at changing this to be configurable in the future) to control the limit of how many image conversions can happen at once.
+
 1.0.1.0 - May 22 2009
 -Converted to use Moss Common StreamUtil to remove dependency on Apache Commons Net
 
