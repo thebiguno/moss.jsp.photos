@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
 <settings>
-	<size max="1000" min='50'/>
-	<quality max='85' min='5'/>
+	<size max="1000" min='0'/>
+	<quality max='100' min='5'/>
 </settings>

@@ -139,12 +139,14 @@ public class GalleryTag implements Tag {
 					if (isIncludeLink()){
 						pageContext.getOut().println("</a>");
 					}
-					if (isShowTitle()){
+					if (isShowTitle() || isFullQualityTitleLink()){
 						pageContext.getOut().print("<div class='gallery-title'>");
-						pageContext.getOut().print(imagePath.replaceAll("^/.*/", "").replaceAll("\\.[a-zA-Z0-9]+", ""));
+						if (isShowTitle()){
+							pageContext.getOut().print(imagePath.replaceAll("^/.*/", "").replaceAll("\\.[a-zA-Z0-9]+", ""));
+						}
 						if (isFullQualityTitleLink()){
 							pageContext.getOut().print("<div class='gallery-image-download'>");
-							pageContext.getOut().print("<a href='" + getUrlFromFile(imagePath, 0, 100) + "'>");
+							pageContext.getOut().print("<a href='" + getFullQualityUrlFromFile(imagePath) + "'>");
 							pageContext.getOut().print("Download High Resolution Image");
 							pageContext.getOut().print("</a>");
 							pageContext.getOut().println("</div> <!--gallery-image-download-->");
@@ -174,6 +176,23 @@ public class GalleryTag implements Tag {
 		parent = null;
 	}
 
+	private String getFullQualityUrlFromFile(String path){
+		String packageName = path.replaceAll("^/WEB-INF/galleries", "").replaceAll("/[^/]+$", "");
+		String baseName = path.replaceAll("^/.*/", "").replaceAll("\\.[a-zA-Z0-9]+", "");
+		String ext = path.replaceAll("^.+\\.", "");
+		
+		return (pageContext.getServletContext().getContextPath() 
+				+ ImageFilter.GALLERIES_PATH 
+				+ packageName
+				+ "/"
+				+ baseName 
+				+ "_" 
+				+ ext 
+				+ "_full"
+				+ ".jpg").replaceAll(" ", "%20");
+
+	}
+	
 	private String getUrlFromFile(String path, int size, int quality){
 		String packageName = path.replaceAll("^/WEB-INF/galleries", "").replaceAll("/[^/]+$", "");
 		String baseName = path.replaceAll("^/.*/", "").replaceAll("\\.[a-zA-Z0-9]+", "");

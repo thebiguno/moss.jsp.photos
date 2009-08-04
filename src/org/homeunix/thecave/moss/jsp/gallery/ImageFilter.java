@@ -104,17 +104,34 @@ public class ImageFilter implements Filter {
 		String requestUriFile = requestUriWithoutContextAndGalleriesPrefix.replaceAll("^/.*/", "").replaceAll("\\.jpg$", "");
 
 		String[] split = requestUriFile.split("_");
-		if (split.length < 4)
+		boolean fullQuality = false;
+		if (split.length == 3 && split[2].equals("full"))
+			fullQuality = true;
+		else if (split.length < 4)
 			return new ByteArrayInputStream(new byte[0]);
 
-		String qualityString = split[split.length - 1];
-		String sizeAndTypeString = split[split.length - 2];
-		String sizeType = sizeAndTypeString.replaceAll("[^a-z]", ""); //Size type will determine what sort of sizing algorithm to use.
-		String sizeString = sizeAndTypeString.replaceAll("[^0-9]", "");
-		int size = Integer.parseInt(sizeString);
-		int quality = Integer.parseInt(qualityString);
-		String ext = split[split.length - 3];
-		String baseName = requestUriFile.replaceAll("_" + ext + "_" + sizeAndTypeString + "_" + qualityString, "");
+		String qualityString, typeString, sizeString, ext, baseName;
+		int size, quality;
+		
+		if (fullQuality){
+			qualityString = null;
+			typeString = null;
+			sizeString = null;
+			size = 0;
+			quality = 100;
+			ext = split[split.length - 2];
+			baseName = requestUriFile.replaceAll("_" + ext + "_full", "");
+		}
+		else {
+			qualityString = split[split.length - 1];
+			String sizeAndTypeString = split[split.length - 2];
+			typeString = sizeAndTypeString.replaceAll("[^a-zA-Z]", ""); //Size type will determine what sort of sizing algorithm to use.
+			sizeString = sizeAndTypeString.replaceAll("[^0-9]", "");
+			size = Integer.parseInt(sizeString);
+			quality = Integer.parseInt(qualityString);
+			ext = split[split.length - 3];
+			baseName = requestUriFile.replaceAll("_" + ext + "_" + sizeAndTypeString + "_" + qualityString, "");			
+		}
 
 		//Check the gallery for gallery-specific overrides on max / min size and quality.
 		InputStream settings = config.getServletContext().getResourceAsStream("/WEB-INF" + GALLERIES_PATH + packageName + "/settings.xml");
@@ -129,7 +146,7 @@ public class ImageFilter implements Filter {
 				Integer qualityMax = getSettings(doc, "quality", "max");
 				Integer qualityMin = getSettings(doc, "quality", "min");
 				
-				if (sizeMax != null && (size > sizeMax || size == 0))
+				if (sizeMax != null && !fullQuality && (size > sizeMax || size == 0))
 					size = sizeMax;
 				if (sizeMin != null && size < sizeMin && size != 0)
 					size = sizeMin;
@@ -158,8 +175,15 @@ public class ImageFilter implements Filter {
 
 		if (is == null)
 			throw new RuntimeException("Could not find image");
-
-		return new ByteArrayInputStream(convertImage(is, size, sizeType, quality));
+		if (fullQuality){
+			if (size != 0 || quality != 100){
+				throw new RuntimeException("Full Quality Download Forbidden by site policy");
+			}
+			return new ByteArrayInputStream(getFullQualityImage(is));
+		}
+		else {
+			return new ByteArrayInputStream(convertImage(is, size, typeString, quality));
+		}
 	}
 	
 	private Integer getSettings(Document doc, String element, String attribute){
@@ -178,6 +202,19 @@ public class ImageFilter implements Filter {
 		catch (NumberFormatException nfe){
 			return null;
 		}
+	}
+	
+	private byte[] getFullQualityImage(InputStream is){
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		
+		try {
+			StreamUtil.copyStream(is, baos);
+		}
+		catch (IOException ioe){
+			return new byte[0];
+		}
+		
+		return baos.toByteArray();
 	}
 
 	/**
