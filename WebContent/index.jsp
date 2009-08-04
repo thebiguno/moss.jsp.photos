@@ -10,7 +10,7 @@
 <body>
 <h1>Foo</h1>
 
-<g:gallery packageName="/img" thumbSize="256" fullSize="800" />
+<g:gallery packageName="/img" thumbSize="256" fullSize="800" showFullQualityDownload="true"/>
 
 </body>
 </html>

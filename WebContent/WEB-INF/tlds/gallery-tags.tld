@@ -49,7 +49,7 @@
 			<required>false</required>
 		</attribute>
 		<attribute>
-			<name>fullQualityTitleLink</name>
+			<name>showFullQualityDownload</name>
 			<required>false</required>
 		</attribute>
 		<attribute>

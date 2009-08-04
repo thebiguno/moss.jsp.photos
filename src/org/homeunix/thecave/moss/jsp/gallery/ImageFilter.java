@@ -21,6 +21,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -57,10 +58,13 @@ public class ImageFilter implements Filter {
 			return;
 		}
 		
+		HttpServletRequest request = (HttpServletRequest) req;
+		HttpServletResponse response = (HttpServletResponse) res;
+		
 		//Built in Lightbox components
 		for (String path : new String[]{JAVASCRIPT_PATH, CSS_PATH, IMAGE_PATH}) {
-			if (((HttpServletRequest) req).getRequestURI().matches(config.getServletContext().getContextPath() + path + "/.*\\.[a-zA-Z]{2,3}")){
-				String name = ((HttpServletRequest) req).getRequestURI().replaceAll(config.getServletContext().getContextPath() + path + "/", "");
+			if (request.getRequestURI().matches(config.getServletContext().getContextPath() + path + "/.*\\.[a-zA-Z]{2,3}")){
+				String name = request.getRequestURI().replaceAll(config.getServletContext().getContextPath() + path + "/", "");
 				InputStream is = ImageFilter.class.getResourceAsStream("resources/" + name);
 				if (is != null){
 					StreamUtil.copyStream(is, res.getOutputStream());
@@ -70,14 +74,14 @@ public class ImageFilter implements Filter {
 		}
 		
 		//Gallery images - located under /galleries/<packageName>/filename
-		if (((HttpServletRequest) req).getRequestURI().matches(config.getServletContext().getContextPath() + GALLERIES_PATH + "/.+" )){
-			StreamUtil.copyStream(getImageInputStream(((HttpServletRequest) req).getRequestURI(), config), res.getOutputStream());
+		if (request.getRequestURI().matches(config.getServletContext().getContextPath() + GALLERIES_PATH + "/.+" )){
+			doServeImage(request, response);
 			return;
 		}
 		
 		chain.doFilter(req, res);
 	}
-
+	
 	/**
 	 * Given a request URI, returns the image associated with the request.
 	 * The request URI must be in the form:
@@ -87,12 +91,10 @@ public class ImageFilter implements Filter {
 	 * image extension, size is the size of the scaled version, and quality 
 	 * is the quality of the scaled version (100 is full quality (largest size),
 	 * 0 is lowest quality (smallest image). 
-	 * @param requestURI
-	 * @param context File referencing the root of the webapp.  If null, we will look 
-	 * for images in the classpath, and cache images in memory only. 
-	 * @return
 	 */
-	private InputStream getImageInputStream(String requestURI, FilterConfig config){
+	private void doServeImage(HttpServletRequest request, HttpServletResponse response) throws IOException{
+		String requestURI = request.getRequestURI();
+		
 		//Set the thread priority to be lower, so that other requests get processed in a reasonable time.
 		Thread.currentThread().setPriority(Thread.NORM_PRIORITY - 1);
 		
@@ -107,8 +109,10 @@ public class ImageFilter implements Filter {
 		boolean fullQuality = false;
 		if (split.length == 3 && split[2].equals("full"))
 			fullQuality = true;
-		else if (split.length < 4)
-			return new ByteArrayInputStream(new byte[0]);
+		else if (split.length < 4){
+			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+			return;
+		}
 
 		String qualityString, typeString, sizeString, ext, baseName;
 		int size, quality;
@@ -135,58 +139,75 @@ public class ImageFilter implements Filter {
 
 		//Check the gallery for gallery-specific overrides on max / min size and quality.
 		InputStream settings = config.getServletContext().getResourceAsStream("/WEB-INF" + GALLERIES_PATH + packageName + "/settings.xml");
-		if (settings != null){
+		if (settings == null){
+			//You must have a settings.xml file, or you cannot access the content.
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			return;
+		}
+		else {
 			try {
 				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 				DocumentBuilder db = dbf.newDocumentBuilder();
 				Document doc = db.parse(settings);
 				
-				Integer sizeMax = getSettings(doc, "size", "max");
-				Integer sizeMin = getSettings(doc, "size", "min");
-				Integer qualityMax = getSettings(doc, "quality", "max");
-				Integer qualityMin = getSettings(doc, "quality", "min");
 				
-				if (sizeMax != null && !fullQuality && (size > sizeMax || size == 0))
-					size = sizeMax;
-				if (sizeMin != null && size < sizeMin && size != 0)
-					size = sizeMin;
-				if (qualityMax != null && quality > qualityMax)
-					quality = qualityMax;
-				if (qualityMin != null && quality < qualityMin)
-					quality = qualityMin;
+				Boolean fullQualityAllowed = getBooleanSettings(doc, "full-quality", "allowed");
+				if (fullQuality){
+					if (fullQualityAllowed == null || fullQualityAllowed == false){
+						response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+						return;
+					}
+				}
+				else {
+					Integer sizeMax = getIntegerSettings(doc, "size", "max");
+					Integer sizeMin = getIntegerSettings(doc, "size", "min");
+					Integer qualityMax = getIntegerSettings(doc, "quality", "max");
+					Integer qualityMin = getIntegerSettings(doc, "quality", "min");
+					
+					if (sizeMax != null && size > sizeMax)
+						size = sizeMax;
+					if (sizeMin != null && size < sizeMin)
+						size = sizeMin;
+					if (qualityMax != null && quality > qualityMax)
+						quality = qualityMax;
+					if (qualityMin != null && quality < qualityMin)
+						quality = qualityMin;
+				}
 			}
 			catch (Exception e){
 				logger.log(Level.WARNING, "Error while opening settings.xml for gallery package " + packageName, e);
 			}
 		}
 		
-		//Check for sane values on size / quality
-		if (size < 10 && size != 0)
-			size = 10; //Size = 0 means full size; if they set it less than 0, we don't want to give them massive images.
-		if (size > 4000)
-			size = 4000;
-		if (quality > 100)
-			quality = 100;
-		if (quality < 0)
-			quality = 0;
+		//Check for sane values on size / quality - only applicable for non-full quality images
+		if (!fullQuality){
+			if (size < 10)
+				size = 10;
+			if (size > 4000)
+				size = 4000;
+			if (quality > 100)
+				quality = 100;
+			if (quality < 0)
+				quality = 0;
+		}
 		
 		//We load source images from the context path
 		InputStream is = config.getServletContext().getResourceAsStream(("/WEB-INF" + GALLERIES_PATH + packageName + baseName + "." + ext).replaceAll("%20", " "));
 
-		if (is == null)
-			throw new RuntimeException("Could not find image");
+		if (is == null){
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			return;
+		}
 		if (fullQuality){
-			if (size != 0 || quality != 100){
-				throw new RuntimeException("Full Quality Download Forbidden by site policy");
-			}
-			return new ByteArrayInputStream(getFullQualityImage(is));
+			response.setContentType("application/octet-stream");
+			StreamUtil.copyStream(is, response.getOutputStream());
 		}
 		else {
-			return new ByteArrayInputStream(convertImage(is, size, typeString, quality));
+			StreamUtil.copyStream(new ByteArrayInputStream(convertImage(is, size, typeString, quality)), response.getOutputStream());
 		}
 	}
 	
-	private Integer getSettings(Document doc, String element, String attribute){
+	private Integer getIntegerSettings(Document doc, String element, String attribute){
 		if (doc == null)
 			return null;
 		NodeList children = doc.getElementsByTagName(element);
@@ -204,17 +225,22 @@ public class ImageFilter implements Filter {
 		}
 	}
 	
-	private byte[] getFullQualityImage(InputStream is){
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		
+	private Boolean getBooleanSettings(Document doc, String element, String attribute){
+		if (doc == null)
+			return null;
+		NodeList children = doc.getElementsByTagName(element);
+		if (children.getLength() == 0)
+			return null;
+		Node child = children.item(0);
+		Node attrNode = child.getAttributes().getNamedItem(attribute);
+		if (attrNode == null)
+			return null;
 		try {
-			StreamUtil.copyStream(is, baos);
+			return Boolean.parseBoolean(attrNode.getTextContent());
 		}
-		catch (IOException ioe){
-			return new byte[0];
+		catch (NumberFormatException nfe){
+			return null;
 		}
-		
-		return baos.toByteArray();
 	}
 
 	/**

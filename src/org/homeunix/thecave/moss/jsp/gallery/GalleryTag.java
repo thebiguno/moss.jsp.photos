@@ -15,24 +15,24 @@ public class GalleryTag implements Tag {
 	private Tag parent = null;
 
 	private String packageName = ".";
-	private int thumbSize = 128;
+	private int thumbSize = 256;
 	private int fullSize = 800;
-	private int thumbQuality = 50;
-	private int fullQuality = 75;
+	private int thumbQuality = 75;
+	private int fullQuality = 85;
 	
 	private boolean showTitle = false;
 	private boolean includeLink = true;
-	private boolean fullQualityTitleLink = false;
+	private boolean showFullQualityDownload = false;
 
 	private String matchRegex = ".*png|.*jpg|.*jpeg|.*bmp|.*png|.*gif";
 	private String excludeRegex = "\\..*"; //Hide all dot files
 
-	public boolean isFullQualityTitleLink() {
-		return fullQualityTitleLink;
+	public boolean isShowFullQualityDownload() {
+		return showFullQualityDownload;
 	}
 	
-	public void setFullQualityTitleLink(boolean fullQualityTitleLink) {
-		this.fullQualityTitleLink = fullQualityTitleLink;
+	public void setShowFullQualityDownload(boolean fullQualityTitleLink) {
+		this.showFullQualityDownload = fullQualityTitleLink;
 	}
 	
 	public boolean isIncludeLink() {
@@ -139,12 +139,12 @@ public class GalleryTag implements Tag {
 					if (isIncludeLink()){
 						pageContext.getOut().println("</a>");
 					}
-					if (isShowTitle() || isFullQualityTitleLink()){
+					if (isShowTitle() || isShowFullQualityDownload()){
 						pageContext.getOut().print("<div class='gallery-title'>");
 						if (isShowTitle()){
 							pageContext.getOut().print(imagePath.replaceAll("^/.*/", "").replaceAll("\\.[a-zA-Z0-9]+", ""));
 						}
-						if (isFullQualityTitleLink()){
+						if (isShowFullQualityDownload()){
 							pageContext.getOut().print("<div class='gallery-image-download'>");
 							pageContext.getOut().print("<a href='" + getFullQualityUrlFromFile(imagePath) + "'>");
 							pageContext.getOut().print("Download High Resolution Image");

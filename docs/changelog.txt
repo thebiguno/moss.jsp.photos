@@ -1,7 +1,11 @@
 1.0.3.0 - August 4 2009
 -Changed Full Quality download link to return the original image byte stream, and not a rescaled version.  This will allow images downloaded via this method to be easily printed, as all the metadata and image quality is still there.
--Show Title is no longer needed to download high quality image.
--Modified logic for parsing settings.xml to only allow for full quality downloads if size == 0 and quality == 100  
+-Changed tag logic so that Show Title is no longer needed to download high quality image.
+-Changed download full quality tag name from "fullQualityTitleLink" to "showFullQualityDownload", since the title being visible is not needed.  
+-Changed logic for parsing settings.xml to only allow for full quality downloads if size == 0 and quality == 100
+-Changed logic so that Full Quality Download link now returns as application/octet-stream MIME type, so that (most) browsers will not view it, but will instead download to disk.
+-Changed logic such that settings.xml is required for any gallery viewing - if this file does not exist, any request to a given gallery will result in a 404 error.
+-Changed logic such that you must explicitly allow full quality image viewing in settings.xml, or you cannot download the full quality image.  Use the '<full-quality allowed="true"/>' XML tag to allow this.
 
 1.0.2.0 - July 7 2009
 -Added a semaphore (currently hardcoded to 2 permits; will look at changing this to be configurable in the future) to control the limit of how many image conversions can happen at once.
