@@ -186,9 +186,10 @@ public class GalleryTag implements Tag {
 				+ packageName
 				+ "/"
 				+ baseName 
-				+ "_" 
-				+ ext 
-				+ "_full"
+				+ ImageFilter.IMAGE_SEPARATOR 
+				+ ext
+				+ ImageFilter.IMAGE_SEPARATOR
+				+ "full"
 				+ ".jpg").replaceAll(" ", "%20");
 
 	}
@@ -203,11 +204,11 @@ public class GalleryTag implements Tag {
 			+ packageName
 			+ "/"
 			+ baseName 
-			+ "_" 
+			+ ImageFilter.IMAGE_SEPARATOR
 			+ ext 
-			+ "_"
+			+ ImageFilter.IMAGE_SEPARATOR
 			+ size 
-			+ "_" 
+			+ ImageFilter.IMAGE_SEPARATOR
 			+ quality 
 			+ ".jpg").replaceAll(" ", "%20");
 	}

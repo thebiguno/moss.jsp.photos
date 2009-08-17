@@ -44,6 +44,8 @@ public class ImageFilter implements Filter {
 	final static String IMAGE_PATH = "/images";
 	final static String GALLERIES_PATH = "/galleries";
 	
+	final static String IMAGE_SEPARATOR = ",,,";
+	
 	private FilterConfig config;
 	private Logger logger = Logger.getLogger(ImageFilter.class.getName());
 	
@@ -105,7 +107,7 @@ public class ImageFilter implements Filter {
 		String packageName = requestUriWithoutContextAndGalleriesPrefix.replaceAll("[^/]+$", "");
 		String requestUriFile = requestUriWithoutContextAndGalleriesPrefix.replaceAll("^/.*/", "").replaceAll("\\.jpg$", "");
 
-		String[] split = requestUriFile.split("_");
+		String[] split = requestUriFile.split(IMAGE_SEPARATOR);
 		boolean fullQuality = false;
 		if (split.length == 3 && split[2].equals("full"))
 			fullQuality = true;
@@ -124,7 +126,7 @@ public class ImageFilter implements Filter {
 			size = 0;
 			quality = 100;
 			ext = split[split.length - 2];
-			baseName = requestUriFile.replaceAll("_" + ext + "_full", "");
+			baseName = requestUriFile.replaceAll(IMAGE_SEPARATOR + ext + IMAGE_SEPARATOR + "full", "");
 		}
 		else {
 			qualityString = split[split.length - 1];
@@ -134,7 +136,7 @@ public class ImageFilter implements Filter {
 			size = Integer.parseInt(sizeString);
 			quality = Integer.parseInt(qualityString);
 			ext = split[split.length - 3];
-			baseName = requestUriFile.replaceAll("_" + ext + "_" + sizeAndTypeString + "_" + qualityString, "");			
+			baseName = requestUriFile.replaceAll(IMAGE_SEPARATOR + ext + IMAGE_SEPARATOR + sizeAndTypeString + IMAGE_SEPARATOR + qualityString, "");			
 		}
 
 		//Check the gallery for gallery-specific overrides on max / min size and quality.
