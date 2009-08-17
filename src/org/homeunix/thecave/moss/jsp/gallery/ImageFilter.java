@@ -44,7 +44,7 @@ public class ImageFilter implements Filter {
 	final static String IMAGE_PATH = "/images";
 	final static String GALLERIES_PATH = "/galleries";
 	
-	final static String IMAGE_SEPARATOR = ",,,";
+	final static String IMAGE_SEPARATOR = "_";
 	
 	private FilterConfig config;
 	private Logger logger = Logger.getLogger(ImageFilter.class.getName());
