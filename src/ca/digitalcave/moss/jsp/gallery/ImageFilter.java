@@ -25,11 +25,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.homeunix.thecave.moss.common.StreamUtil;
-import org.homeunix.thecave.moss.image.ImageFunctions;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import ca.digitalcave.moss.common.StreamUtil;
+import ca.digitalcave.moss.image.ImageFunctions;
 
 import com.drew.imaging.jpeg.JpegMetadataReader;
 import com.drew.imaging.jpeg.JpegProcessingException;
