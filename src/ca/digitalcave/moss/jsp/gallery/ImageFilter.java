@@ -1,7 +1,7 @@
 /*
  * Created on May 28, 2008 by wyatt
  */
-package org.homeunix.thecave.moss.jsp.gallery;
+package ca.digitalcave.moss.jsp.gallery;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;

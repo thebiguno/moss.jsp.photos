@@ -1,4 +1,4 @@
-package org.homeunix.thecave.moss.jsp.gallery;
+package ca.digitalcave.moss.jsp.gallery;
 
 import java.io.IOException;
 
