@@ -12,7 +12,7 @@
 
 	<filter>
 		<filter-name>ImageFilter</filter-name>
-		<filter-class>org.homeunix.thecave.moss.jsp.gallery.ImageFilter</filter-class>
+		<filter-class>ca.digitalcave.moss.jsp.gallery.ImageFilter</filter-class>
 	</filter>
 
 	<filter-mapping>
