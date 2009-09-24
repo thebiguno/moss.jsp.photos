@@ -3,17 +3,14 @@
  */
 package ca.digitalcave.moss.jsp.gallery;
 
-import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.imageio.ImageIO;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -30,14 +27,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import ca.digitalcave.moss.common.StreamUtil;
-import ca.digitalcave.moss.image.ImageFunctions;
 
-import com.drew.imaging.jpeg.JpegMetadataReader;
-import com.drew.imaging.jpeg.JpegProcessingException;
-import com.drew.metadata.Directory;
-import com.drew.metadata.Metadata;
-import com.drew.metadata.MetadataException;
-import com.drew.metadata.exif.ExifDirectory;
+import com.hazelcast.core.Hazelcast;
 
 public class ImageFilter implements Filter {
 	final static String JAVASCRIPT_PATH = "/js";
@@ -206,7 +197,17 @@ public class ImageFilter implements Filter {
 			StreamUtil.copyStream(is, response.getOutputStream());
 		}
 		else {
-			StreamUtil.copyStream(new ByteArrayInputStream(convertImage(is, size, typeString, quality)), response.getOutputStream());
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			StreamUtil.copyStream(is, baos);
+			byte[] convertedImage = null;
+			
+			//Give a few attempts in case the remote slaves shut down.
+			for(int attemptCounter = 0; attemptCounter < 10; attemptCounter++){
+				convertedImage = convertImage(baos.toByteArray(), size, typeString, quality);
+				if (convertedImage != null)
+					break;
+			}
+			StreamUtil.copyStream(new ByteArrayInputStream(convertedImage), response.getOutputStream());
 		}
 	}
 	
@@ -254,99 +255,15 @@ public class ImageFilter implements Filter {
 	 * @param quality
 	 * @return
 	 */
-	private static Semaphore semaphore = new Semaphore(2);
-	private byte[] convertImage(InputStream is, int size, String sizeType, int quality){
+	private byte[] convertImage(byte[] originalImage, int size, String sizeType, int quality){
+		ImageConverterRunnable imageConverterRunnable = new ImageConverterRunnable(originalImage, size, sizeType, quality);
 		try {
-			semaphore.acquire();
-			BufferedInputStream bis = new BufferedInputStream(is);
-			bis.mark(bis.available() + 1);
-
-			BufferedImage bi = ImageIO.read(bis);
-			bis.reset();
-
-			//Metadata will only work for .jpg images; ignore exceptions.
-			Metadata metadata = null;
-			try {
-				metadata = JpegMetadataReader.readMetadata(bis);
-			}
-			catch (JpegProcessingException jpe) {}
-
-			//String title = null;
-			int rotationDegrees = 0;
-
-			//Try to load metadata
-			if (metadata != null){
-				//Directory iptcDirectory = metadata.getDirectory(IptcDirectory.class);
-				//title = iptcDirectory.getString(IptcDirectory.TAG_HEADLINE);
-
-				Directory exifDirectory = metadata.getDirectory(ExifDirectory.class);
-				try {
-					if (exifDirectory.containsTag(ExifDirectory.TAG_ORIENTATION)){
-						int orientation = exifDirectory.getInt(ExifDirectory.TAG_ORIENTATION);
-						switch (orientation) {
-						case 3:
-							rotationDegrees = 180;
-							break;
-						case 6:
-							rotationDegrees = 90;
-							break;
-						case 8:
-							rotationDegrees = 270;
-							break;
-
-						default:
-							rotationDegrees = 0;
-						break;
-						}
-					}
-				} 
-				catch (MetadataException me){} //No big deal if metadata is not set
-			}
-
-			double w = bi.getWidth();
-			double h = bi.getHeight();
-			
-			if ("w".equals(sizeType)){
-				if (h > w)
-					size = (int) ((size / h) * w); 
-			}
-			else if ("h".equals(sizeType)){
-				if (w > h)
-					size = (int) ((size / h) * w); 				
-			}
-			else {
-				//We calculate the size of the new image based off the hypotenuse,
-				// scaled such that longer / thin images (those with a higher width 
-				// to height ratio / height to width ratio, depending on which is larger)
-				// get scaled up more than square images.
-				double angle = Math.atan(h / w);
-
-				double newHeight = size * Math.sin(angle);
-				double newWidth = size * Math.cos(angle);
-
-				double scaleFactor = 1 + Math.log10((Math.max(w, h) / Math.min(w, h)));
-
-				size = (int) (Math.max(newWidth, newHeight) * scaleFactor);
-			}
-			
-			if (size != 0)
-				bi = ImageFunctions.scaleImage(bi, size);
-			
-			if (rotationDegrees != 0)
-				bi = ImageFunctions.rotate(bi, rotationDegrees);
-			
-			ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			ImageFunctions.writeImage(bi, bos, (quality / 100f), "jpg");
-			bos.flush();
-			semaphore.release();
-			return bos.toByteArray(); 
+			Future<byte[]> future = Hazelcast.getExecutorService().submit(imageConverterRunnable);
+			return future.get();
 		}
-		catch (IOException ioe){
-			semaphore.release();
-			throw new RuntimeException(ioe);
-		}
-		catch (InterruptedException ie){
-			throw new RuntimeException(ie);
+		catch (Exception e){
+			logger.warning(e.getMessage());
+			return null;
 		}
 	}
 	
