@@ -7,9 +7,17 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -28,8 +36,6 @@ import org.w3c.dom.NodeList;
 
 import ca.digitalcave.moss.common.StreamUtil;
 
-import com.hazelcast.core.Hazelcast;
-
 public class ImageFilter implements Filter {
 	final static String JAVASCRIPT_PATH = "/js";
 	final static String CSS_PATH = "/css";
@@ -40,6 +46,9 @@ public class ImageFilter implements Filter {
 	
 	private FilterConfig config;
 	private Logger logger = Logger.getLogger(ImageFilter.class.getName());
+	
+	//private final static ExecutorService executor = new ThreadPoolExecutor(1, 1, 10, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+	private final static ExecutorService executor = new ThreadPoolExecutor(2, 3, 10, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
 	
 	public void init(FilterConfig config) throws ServletException {
 		this.config = config;
@@ -67,13 +76,114 @@ public class ImageFilter implements Filter {
 			}
 		}
 		
-		//Gallery images - located under /galleries/<packageName>/filename
-		if (request.getRequestURI().matches(config.getServletContext().getContextPath() + GALLERIES_PATH + "/.+" )){
+		//Gallery images zip - located under /galleries/<packageName>/all.zip
+		if (request.getRequestURI().matches(config.getServletContext().getContextPath() + GALLERIES_PATH + "/.+/all\\.zip")){
+			doServeZip(request, response);
+			return;
+		}
+		//Gallery images - located under /galleries/<packageName>/<filename>
+		else if (request.getRequestURI().matches(config.getServletContext().getContextPath() + GALLERIES_PATH + "/.+" )){
 			doServeImage(request, response);
 			return;
 		}
 		
+		
 		chain.doFilter(req, res);
+	}
+	
+	/**
+	 * Given a request URI, returns a .zip file containing all the high quality images.  The request
+	 * URI must be in the form:
+	 *  /galleries/package/name/all.zip
+	 * where package/name is the path to the source gallery, relative to WEB-INF/galleries.
+	 * @param request
+	 * @param response
+	 * @throws IOException
+	 */
+	@SuppressWarnings("unchecked")
+	private void doServeZip(HttpServletRequest request, HttpServletResponse response) throws IOException{
+		String requestURI = request.getRequestURI();
+		
+		//Set the thread priority to be lower, so that other requests get processed in a reasonable time.
+		Thread.currentThread().setPriority(Thread.NORM_PRIORITY - 1);
+		
+		//Remove the /galleries prefix
+		String requestUriWithoutContextAndGalleriesPrefix = requestURI.replaceAll("^" + config.getServletContext().getContextPath() + GALLERIES_PATH, "");
+
+		//Find path to gallery source
+		String packageName = requestUriWithoutContextAndGalleriesPrefix.replaceAll("[^/]+$", "");
+
+		//Check the gallery for gallery-specific settings.  If full resolution downloads are not allowed, return 403.
+		InputStream settings = config.getServletContext().getResourceAsStream("/WEB-INF" + GALLERIES_PATH + packageName + "/settings.xml");
+		if (settings == null){
+			//You must have a settings.xml file, or you cannot access the content.
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			return;
+		}
+		else {
+			try {
+				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+				DocumentBuilder db = dbf.newDocumentBuilder();
+				Document doc = db.parse(settings);
+				
+				
+				Boolean fullQualityAllowed = getBooleanSettings(doc, "full-quality", "allowed");
+				if (fullQualityAllowed == null || fullQualityAllowed == false){
+					response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+					return;
+				}
+			}
+			catch (Exception e){
+				logger.log(Level.WARNING, "Error while opening settings.xml for gallery package " + packageName, e);
+			}
+		}
+		
+		//Create the zip file
+		response.setContentType("application/zip");
+		response.setHeader("Content-Disposition","inline; filename=" + packageName.replaceAll("[^a-zA-Z0-9_-]", "_").replaceAll("^_", "").replaceAll("_$", "") + ".zip;"); 
+		ZipOutputStream zout = new ZipOutputStream(response.getOutputStream());
+		
+		//Get a list of files from the context path
+		List<String> images = new ArrayList<String>(request.getSession().getServletContext().getResourcePaths("/WEB-INF/galleries" + packageName));
+		
+		for (String image : images) {
+			if (image.matches("^.*\\.[jJ][pP][gG]$")){
+				InputStream imageInputStream = config.getServletContext().getResourceAsStream(image);
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				StreamUtil.copyStream(imageInputStream, baos);
+				String fileName = image.replaceAll("/.*/", "");
+				ZipEntry zipEntry = new ZipEntry(packageName.replaceAll("^/", "") + "/" + fileName);
+				zipEntry.setSize(baos.size());
+				zout.putNextEntry(zipEntry);
+				zout.write(baos.toByteArray());
+				zout.closeEntry();
+			}
+		}
+		
+		zout.finish();
+		zout.flush();
+
+		return;
+//		//We load source images from the context path
+//		InputStream is = config.getServletContext().getResourceAsStream(("/WEB-INF" + GALLERIES_PATH + packageName + baseName + "." + ext).replaceAll("%20", " "));
+//
+//		if (is == null){
+//			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+//			return;
+//		}
+//		if (fullQuality){
+//			response.setContentType("application/octet-stream");
+//			StreamUtil.copyStream(is, response.getOutputStream());
+//		}
+//		else {
+//			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//			StreamUtil.copyStream(is, baos);
+//			byte[] convertedImage = null;
+//			
+//			convertedImage = convertImage(baos.toByteArray(), size, typeString, quality);
+//			if (convertedImage != null)
+//				StreamUtil.copyStream(new ByteArrayInputStream(convertedImage), response.getOutputStream());
+//		}
 	}
 	
 	/**
@@ -201,13 +311,9 @@ public class ImageFilter implements Filter {
 			StreamUtil.copyStream(is, baos);
 			byte[] convertedImage = null;
 			
-			//Give a few attempts in case the remote slaves shut down.
-			for(int attemptCounter = 0; attemptCounter < 10; attemptCounter++){
-				convertedImage = convertImage(baos.toByteArray(), size, typeString, quality);
-				if (convertedImage != null)
-					break;
-			}
-			StreamUtil.copyStream(new ByteArrayInputStream(convertedImage), response.getOutputStream());
+			convertedImage = convertImage(baos.toByteArray(), size, typeString, quality);
+			if (convertedImage != null)
+				StreamUtil.copyStream(new ByteArrayInputStream(convertedImage), response.getOutputStream());
 		}
 	}
 	
@@ -256,13 +362,14 @@ public class ImageFilter implements Filter {
 	 * @return
 	 */
 	private byte[] convertImage(byte[] originalImage, int size, String sizeType, int quality){
-		ImageConverterRunnable imageConverterRunnable = new ImageConverterRunnable(originalImage, size, sizeType, quality);
+		ImageConverterCallable imageConverterRunnable = new ImageConverterCallable(originalImage, size, sizeType, quality);
 		try {
-			Future<byte[]> future = Hazelcast.getExecutorService().submit(imageConverterRunnable);
+			Future<byte[]> future = executor.submit(imageConverterRunnable);
 			return future.get();
 		}
 		catch (Exception e){
-			logger.warning(e.getMessage());
+//			logger.warning(e.getMessage());
+			e.printStackTrace();
 			return null;
 		}
 	}

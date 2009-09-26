@@ -160,6 +160,10 @@ public class GalleryTag implements Tag {
 
 			pageContext.getOut().println("<div class='gallery-end'/>");
 			pageContext.getOut().write("</div> <!-- gallery -->\n");
+
+			if (isShowFullQualityDownload()){
+				pageContext.getOut().write("<p><a href='" + pageContext.getServletContext().getContextPath() + ImageFilter.GALLERIES_PATH + packageName + "/all.zip'>Download All High Resolution Images</a></p>");
+			}
 		} 
 		catch(IOException ioe) {
 			throw new JspTagException("An IOException occurred.");
