@@ -11,13 +11,13 @@
 
 	<tag> 
 		<name>header</name> 
-		<tag-class>ca.digitalcave.moss.jsp.gallery.GalleryHeaderTag</tag-class>
+		<tag-class>ca.digitalcave.moss.jsp.photos.PhotosHeaderTag</tag-class>
 		<description>Lightbox Include files - must be placed in HTML Header for the gallery tag to work</description> 
 	</tag>
 	
 	<tag> 
 		<name>gallery</name> 
-		<tag-class>ca.digitalcave.moss.jsp.gallery.GalleryTag</tag-class>
+		<tag-class>ca.digitalcave.moss.jsp.photos.GalleryTag</tag-class>
 		<description>Creates a gallery from specified image files</description>
 
 		<attribute>
@@ -50,6 +50,33 @@
 		</attribute>
 		<attribute>
 			<name>showFullQualityDownload</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>matchRegex</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>excludeRegex</name>
+			<required>false</required>
+		</attribute>
+	</tag>
+	
+	<tag> 
+		<name>slideshow</name> 
+		<tag-class>ca.digitalcave.moss.jsp.photos.SlideshowTag</tag-class>
+		<description>Creates a slideshow from specified image files</description>
+
+		<attribute>
+			<name>packageName</name>
+			<required>true</required>
+		</attribute>
+		<attribute>
+			<name>size</name>
+			<required>true</required>
+		</attribute>
+		<attribute>
+			<name>quality</name>
 			<required>false</required>
 		</attribute>
 		<attribute>

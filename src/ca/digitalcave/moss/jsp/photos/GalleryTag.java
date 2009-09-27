@@ -1,4 +1,4 @@
-package ca.digitalcave.moss.jsp.gallery;
+package ca.digitalcave.moss.jsp.photos;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -133,9 +133,9 @@ public class GalleryTag implements Tag {
 					pageContext.getOut().println("\n\n\n<div class='gallery-image'>");
 					pageContext.getOut().println("<div class='gallery-frame'>");
 					if (isIncludeLink()){
-						pageContext.getOut().println("<a href='" + getUrlFromFile(imagePath, getFullSize(), getFullQuality()) + "' rel='lightbox[" + getPackageName().replaceAll("/", "_") + "]'>");
+						pageContext.getOut().println("<a href='" + Common.getUrlFromFile(pageContext, imagePath, getFullSize(), getFullQuality()) + "' rel='lightbox[" + getPackageName().replaceAll("/", "_") + "]'>");
 					}
-					pageContext.getOut().println("<img src='" + getUrlFromFile(imagePath, getThumbSize(), getThumbQuality()) + "' alt=''/>");
+					pageContext.getOut().println("<img src='" + Common.getUrlFromFile(pageContext, imagePath, getThumbSize(), getThumbQuality()) + "' alt=''/>");
 					if (isIncludeLink()){
 						pageContext.getOut().println("</a>");
 					}
@@ -146,7 +146,7 @@ public class GalleryTag implements Tag {
 						}
 						if (isShowFullQualityDownload()){
 							pageContext.getOut().print("<div class='gallery-image-download'>");
-							pageContext.getOut().print("<a href='" + getFullQualityUrlFromFile(imagePath) + "'>");
+							pageContext.getOut().print("<a href='" + Common.getFullQualityUrlFromFile(pageContext, imagePath) + "'>");
 							pageContext.getOut().print("Download High Resolution Image");
 							pageContext.getOut().print("</a>");
 							pageContext.getOut().println("</div> <!--gallery-image-download-->");
@@ -178,42 +178,5 @@ public class GalleryTag implements Tag {
 	public void release() {
 		pageContext = null;
 		parent = null;
-	}
-
-	private String getFullQualityUrlFromFile(String path){
-		String packageName = path.replaceAll("^/WEB-INF/galleries", "").replaceAll("/[^/]+$", "");
-		String baseName = path.replaceAll("^/.*/", "").replaceAll("\\.[a-zA-Z0-9]+", "");
-		String ext = path.replaceAll("^.+\\.", "");
-		
-		return (pageContext.getServletContext().getContextPath() 
-				+ ImageFilter.GALLERIES_PATH 
-				+ packageName
-				+ "/"
-				+ baseName 
-				+ ImageFilter.IMAGE_SEPARATOR 
-				+ ext
-				+ ImageFilter.IMAGE_SEPARATOR
-				+ "full"
-				+ ".jpg").replaceAll(" ", "%20");
-
-	}
-	
-	private String getUrlFromFile(String path, int size, int quality){
-		String packageName = path.replaceAll("^/WEB-INF/galleries", "").replaceAll("/[^/]+$", "");
-		String baseName = path.replaceAll("^/.*/", "").replaceAll("\\.[a-zA-Z0-9]+", "");
-		String ext = path.replaceAll("^.+\\.", "");
-		
-		return (pageContext.getServletContext().getContextPath() 
-			+ ImageFilter.GALLERIES_PATH 
-			+ packageName
-			+ "/"
-			+ baseName 
-			+ ImageFilter.IMAGE_SEPARATOR
-			+ ext 
-			+ ImageFilter.IMAGE_SEPARATOR
-			+ size 
-			+ ImageFilter.IMAGE_SEPARATOR
-			+ quality 
-			+ ".jpg").replaceAll(" ", "%20");
 	}
 }

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package ca.digitalcave.moss.jsp.gallery;
+package ca.digitalcave.moss.jsp.photos;
 
 import java.awt.Dimension;
 import java.awt.Graphics;

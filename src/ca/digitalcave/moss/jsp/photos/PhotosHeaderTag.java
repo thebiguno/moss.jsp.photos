@@ -1,4 +1,4 @@
-package ca.digitalcave.moss.jsp.gallery;
+package ca.digitalcave.moss.jsp.photos;
 
 import java.io.IOException;
 
@@ -7,7 +7,7 @@ import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.PageContext;
 import javax.servlet.jsp.tagext.Tag;
 
-public class GalleryHeaderTag implements Tag {
+public class PhotosHeaderTag implements Tag {
 	private PageContext pageContext = null;
 	private Tag parent = null;
 
@@ -28,6 +28,7 @@ public class GalleryHeaderTag implements Tag {
 			pageContext.getOut().write("<script type='text/javascript' src='" + pageContext.getServletContext().getContextPath() + ImageFilter.JAVASCRIPT_PATH + "/prototype.js'></script>\n");
 			pageContext.getOut().write("<script type='text/javascript' src='" + pageContext.getServletContext().getContextPath() + ImageFilter.JAVASCRIPT_PATH + "/scriptaculous.js?load=effects,builder'></script>\n");
 			pageContext.getOut().write("<script type='text/javascript' src='" + pageContext.getServletContext().getContextPath() + ImageFilter.JAVASCRIPT_PATH + "/lightbox.js'></script>\n");
+			pageContext.getOut().write("<script type='text/javascript' src='" + pageContext.getServletContext().getContextPath() + ImageFilter.JAVASCRIPT_PATH + "/slideshow.js'></script>\n");
 			
 			pageContext.getOut().write("<link rel='stylesheet' href='" + pageContext.getServletContext().getContextPath() + ImageFilter.CSS_PATH + "/lightbox.css' type='text/css' media='screen' />\n");
 		} 

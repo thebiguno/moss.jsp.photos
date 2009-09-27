@@ -1,7 +1,7 @@
 /*
  * Created on May 28, 2008 by wyatt
  */
-package ca.digitalcave.moss.jsp.gallery;
+package ca.digitalcave.moss.jsp.photos;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -64,7 +64,7 @@ public class ImageFilter implements Filter {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) res;
 		
-		//Built in Lightbox components
+		//Built in script / style components
 		for (String path : new String[]{JAVASCRIPT_PATH, CSS_PATH, IMAGE_PATH}) {
 			if (request.getRequestURI().matches(config.getServletContext().getContextPath() + path + "/.*\\.[a-zA-Z]{2,3}")){
 				String name = request.getRequestURI().replaceAll(config.getServletContext().getContextPath() + path + "/", "");
