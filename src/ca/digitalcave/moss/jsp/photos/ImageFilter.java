@@ -211,7 +211,7 @@ public class ImageFilter implements Filter {
 
 		String[] split = requestUriFile.split(IMAGE_SEPARATOR);
 		boolean fullQuality = false;
-		if (split.length == 3 && split[2].equals("full"))
+		if (split[split.length - 1].equals("full"))
 			fullQuality = true;
 		else if (split.length < 4){
 			response.setStatus(HttpServletResponse.SC_FORBIDDEN);

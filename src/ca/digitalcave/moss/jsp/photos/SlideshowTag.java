@@ -15,8 +15,9 @@ public class SlideshowTag implements Tag {
 	private Tag parent = null;
 
 	private String packageName = ".";
-	private int size = 600;
+	private int size = 0;
 	private int quality = 85;
+	private boolean random = false;
 	
 	private String matchRegex = ".*png|.*jpg|.*jpeg|.*bmp|.*png|.*gif";
 	private String excludeRegex = "\\..*"; //Hide all dot files
@@ -29,6 +30,12 @@ public class SlideshowTag implements Tag {
 		this.packageName = packageName;
 	}
 	
+	public boolean isRandom() {
+		return random;
+	}
+	public void setRandom(boolean random) {
+		this.random = random;
+	}
 	public int getSize() {
 		return size;
 	}
@@ -75,17 +82,27 @@ public class SlideshowTag implements Tag {
 		try {
 
 			
-			pageContext.getOut().println("<script type='text/javascript'>window.addEvent('load', function() {new SlideShow(document.getElementById('slideshow'), 50, 5000, false);});</script>");
+			pageContext.getOut().println("<script type='text/javascript'>window.addEvent('load', function() {new SlideShow(document.getElementById('slideshow'), 25, 5000, false);});</script>");
 			
 			pageContext.getOut().println("<div style='position: relative; clear: both;'>");
 			pageContext.getOut().println("<span id='slideshow'>");
 			
 			List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF/galleries" + getPackageName()));
-			Collections.sort(images);
+			if (isRandom())
+				Collections.shuffle(images);
+			else
+				Collections.sort(images);
 			
 			for (String imagePath : images) {
 				if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
-					pageContext.getOut().println("<img src='" + Common.getUrlFromFile(pageContext, imagePath, getSize(), getQuality()) + "' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
+					if (getSize() == 0)
+						pageContext.getOut().println("<img src='" + Common.getFullQualityUrlFromFile(pageContext, imagePath) + "' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
+//					else if (getSize() == -1){
+//						pageContext.getOut().println("<img id='" +  + "' src='" + Common.getUrlFromFile(pageContext, imagePath, getSize(), getQuality()) + "' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
+//						pageContext.getOut().println();
+//					}
+					else
+						pageContext.getOut().println("<img src='" + Common.getUrlFromFile(pageContext, imagePath, getSize(), getQuality()) + "' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
 				}
 			}
 
