@@ -82,17 +82,17 @@ public class ImageConverterCallable implements Serializable, Callable<byte[]> {
 							case 3:
 								//180 Degrees
 						    	transform.translate(bi.getWidth(), bi.getHeight());
-						    	transform.quadrantRotate(2);
+						    	transform.rotate(Math.toRadians(180));
 								break;
 							case 6:
 								//90 Degrees
 						    	transform.translate(bi.getHeight(), 0);
-						    	transform.quadrantRotate(1);
+						    	transform.rotate(Math.toRadians(90));
 								break;
 							case 8:
 								//270 Degrees
 						    	transform.translate(0, bi.getWidth());
-						    	transform.quadrantRotate(3);
+						    	transform.rotate(Math.toRadians(270));
 								break;
 
 							default:

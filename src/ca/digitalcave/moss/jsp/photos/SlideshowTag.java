@@ -19,8 +19,13 @@ public class SlideshowTag implements Tag {
 	private int quality = 85;
 	private boolean random = false;
 	
+	private int fadeSpeed = 25;
+	private int photoSpeed = 5000;
+	
 	private String matchRegex = ".*png|.*jpg|.*jpeg|.*bmp|.*png|.*gif";
 	private String excludeRegex = "\\..*"; //Hide all dot files
+	
+	private int slideshowCounter = 0; //Used to ensure unique divs on each load
 
 	public String getPackageName() {
 		return packageName;
@@ -47,6 +52,18 @@ public class SlideshowTag implements Tag {
 	}
 	public void setQuality(int quality) {
 		this.quality = quality;
+	}
+	public int getFadeSpeed() {
+		return fadeSpeed;
+	}
+	public void setFadeSpeed(int fadeSpeed) {
+		this.fadeSpeed = fadeSpeed;
+	}
+	public int getPhotoSpeed() {
+		return photoSpeed;
+	}
+	public void setPhotoSpeed(int photoSpeed) {
+		this.photoSpeed = photoSpeed;
 	}
 	
 	public String getMatchRegex() {
@@ -80,12 +97,12 @@ public class SlideshowTag implements Tag {
 	@SuppressWarnings("unchecked")
 	public int doStartTag() throws JspException {
 		try {
-
+			int imageCounter = 0;
 			
-			pageContext.getOut().println("<script type='text/javascript'>window.addEvent('load', function() {new SlideShow(document.getElementById('slideshow'), 25, 5000, false);});</script>");
+			pageContext.getOut().println("<script type='text/javascript'>window.addEvent('load', function() {new SlideShow(document.getElementById('slideshow" + slideshowCounter + "'), " + getFadeSpeed() + ", " + getPhotoSpeed() + ", false);});</script>");
 			
 			pageContext.getOut().println("<div style='position: relative; clear: both;'>");
-			pageContext.getOut().println("<span id='slideshow'>");
+			pageContext.getOut().println("<span id='slideshow" + slideshowCounter + "'>");
 			
 			List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF/galleries" + getPackageName()));
 			if (isRandom())
@@ -95,19 +112,35 @@ public class SlideshowTag implements Tag {
 			
 			for (String imagePath : images) {
 				if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
-					if (getSize() == 0)
-						pageContext.getOut().println("<img src='" + Common.getFullQualityUrlFromFile(pageContext, imagePath) + "' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
+					//Default case is to scale images to fit screen.
+					if (getSize() == 0){
+						pageContext.getOut().println("<img id='slideshow" + slideshowCounter + "image" + imageCounter + "' src='' alt='You need Javascript enabled to view this image' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
+						pageContext.getOut().println("" +
+								"<script type='text/javascript'>" +
+								"var size = getWindowSize(); " +
+								"var image = document.getElementById('slideshow" + slideshowCounter + "image" + imageCounter + "'); " +
+								"var baseImageSrc = " + Common.getUrlStubFromFile(pageContext, imagePath) + ";" +
+								"image.src=\"" +  + "\".replace('XXXSIZEXXX', '200').replace('YYYQUALITYYY', '85');</script>");
+					}
+					else if (getSize() == 1){
+						pageContext.getOut().println("<img id='slideshow" + slideshowCounter + "image" + imageCounter + "' src='" + Common.getFullQualityUrlFromFile(pageContext, imagePath) + "' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
+					}
 //					else if (getSize() == -1){
 //						pageContext.getOut().println("<img id='" +  + "' src='" + Common.getUrlFromFile(pageContext, imagePath, getSize(), getQuality()) + "' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
 //						pageContext.getOut().println();
 //					}
-					else
-						pageContext.getOut().println("<img src='" + Common.getUrlFromFile(pageContext, imagePath, getSize(), getQuality()) + "' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
+					else{
+						pageContext.getOut().println("<img id='slideshow" + slideshowCounter + "image" + imageCounter + "' src='" + Common.getUrlFromFile(pageContext, imagePath, getSize(), getQuality()) + "' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
+					}
 				}
+				
+				imageCounter++;
 			}
 
 			pageContext.getOut().println("<span/>");
 			pageContext.getOut().println("</div>");
+			
+//			slideshowCounter++;
 		} 
 		catch(IOException ioe) {
 			throw new JspTagException("An IOException occurred.");

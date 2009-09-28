@@ -84,6 +84,14 @@
 			<required>false</required>
 		</attribute>
 		<attribute>
+			<name>fadeSpeed</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>photoSpeed</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
 			<name>matchRegex</name>
 			<required>false</required>
 		</attribute>
