@@ -33,9 +33,9 @@ public class Common {
 				+ ImageFilter.IMAGE_SEPARATOR
 				+ ext 
 				+ ImageFilter.IMAGE_SEPARATOR
-				+ "XXXSIZEXXX" 
+				+ "XXX_SIZE_XXX" 
 				+ ImageFilter.IMAGE_SEPARATOR
-				+ "YYYQUALITYYY" 
+				+ "YYY_QUALITY_YYY" 
 				+ ".jpg").replaceAll(" ", "%20");
 
 	}

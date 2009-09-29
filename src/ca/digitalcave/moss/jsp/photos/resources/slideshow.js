@@ -84,7 +84,8 @@ function SlideShow(slideel, fadingSpeed, stopTime) {
 }
 
 function getWindowSize() {
-	int width = 0, height = 0;
+	var width = 0;
+	var height = 0;
 	if( typeof( window.innerWidth ) == 'number' ) {
 		//Non-IE
 		width = window.innerWidth;

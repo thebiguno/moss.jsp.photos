@@ -98,9 +98,9 @@ public class SlideshowTag implements Tag {
 	public int doStartTag() throws JspException {
 		try {
 			int imageCounter = 0;
-			
-			pageContext.getOut().println("<script type='text/javascript'>window.addEvent('load', function() {new SlideShow(document.getElementById('slideshow" + slideshowCounter + "'), " + getFadeSpeed() + ", " + getPhotoSpeed() + ", false);});</script>");
-			
+						
+//			pageContext.getOut().println("<script type='text/javascript'>function startSlideshow(){new SlideShow(document.getElementById('slideshow" + slideshowCounter + "'), " + getFadeSpeed() + ", " + getPhotoSpeed() + ", false); alert('Foo');} window.onLoad = startSlideshow;</script>");			
+//			pageContext.getOut().println("<script type='text/javascript'>new SlideShow(document.getElementById('slideshow" + slideshowCounter + "'), " + getFadeSpeed() + ", " + getPhotoSpeed() + ", false); alert('Foo');</script>");
 			pageContext.getOut().println("<div style='position: relative; clear: both;'>");
 			pageContext.getOut().println("<span id='slideshow" + slideshowCounter + "'>");
 			
@@ -116,11 +116,15 @@ public class SlideshowTag implements Tag {
 					if (getSize() == 0){
 						pageContext.getOut().println("<img id='slideshow" + slideshowCounter + "image" + imageCounter + "' src='' alt='You need Javascript enabled to view this image' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
 						pageContext.getOut().println("" +
-								"<script type='text/javascript'>" +
-								"var size = getWindowSize(); " +
-								"var image = document.getElementById('slideshow" + slideshowCounter + "image" + imageCounter + "'); " +
-								"var baseImageSrc = " + Common.getUrlStubFromFile(pageContext, imagePath) + ";" +
-								"image.src=\"" +  + "\".replace('XXXSIZEXXX', '200').replace('YYYQUALITYYY', '85');</script>");
+								"<script type='text/javascript'>\n" +
+								"var size = getWindowSize();\n" +
+								"var image = document.getElementById('slideshow" + slideshowCounter + "image" + imageCounter + "');\n" +
+								"var baseImageSrc = '" + Common.getUrlStubFromFile(pageContext, imagePath) + "';\n" +
+								"var height = Math.round(size.height / 100) * 100; console.log(height);" +
+								"baseImageSrc = baseImageSrc.replace(/XXX_SIZE_XXX/, height + 'h');\n" +
+								"baseImageSrc = baseImageSrc.replace(/YYY_QUALITY_YYY/, '" + getQuality() + "');\n" +
+								"image.src = baseImageSrc;\n" +
+								"</script>");
 					}
 					else if (getSize() == 1){
 						pageContext.getOut().println("<img id='slideshow" + slideshowCounter + "image" + imageCounter + "' src='" + Common.getFullQualityUrlFromFile(pageContext, imagePath) + "' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
@@ -139,6 +143,8 @@ public class SlideshowTag implements Tag {
 
 			pageContext.getOut().println("<span/>");
 			pageContext.getOut().println("</div>");
+			
+			pageContext.getOut().println("<script type='text/javascript'>window.onLoad = new SlideShow(document.getElementById('slideshow" + slideshowCounter + "'), " + getFadeSpeed() + ", " + getPhotoSpeed() + ", false);</script>");
 			
 //			slideshowCounter++;
 		} 
