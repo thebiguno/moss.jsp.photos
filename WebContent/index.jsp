@@ -11,7 +11,7 @@
 <h1>Foo</h1>
 
 <p>
-<p:slideshow packageName="/img"/>
+<p:slideshow packageName="/img" center="true" size="-200"/>
 </p>
 
 

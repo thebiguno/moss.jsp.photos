@@ -15,9 +15,10 @@ public class SlideshowTag implements Tag {
 	private Tag parent = null;
 
 	private String packageName = ".";
-	private int size = 0;
+	private int size = -100; //Default to slightly smaller than full window
 	private int quality = 85;
 	private boolean random = false;
+	private boolean center = false;
 	
 	private int fadeSpeed = 25;
 	private int photoSpeed = 5000;
@@ -40,6 +41,12 @@ public class SlideshowTag implements Tag {
 	}
 	public void setRandom(boolean random) {
 		this.random = random;
+	}
+	public boolean isCenter() {
+		return center;
+	}
+	public void setCenter(boolean center) {
+		this.center = center;
 	}
 	public int getSize() {
 		return size;
@@ -103,6 +110,7 @@ public class SlideshowTag implements Tag {
 //			pageContext.getOut().println("<script type='text/javascript'>new SlideShow(document.getElementById('slideshow" + slideshowCounter + "'), " + getFadeSpeed() + ", " + getPhotoSpeed() + ", false); alert('Foo');</script>");
 			pageContext.getOut().println("<div style='position: relative; clear: both;'>");
 			pageContext.getOut().println("<span id='slideshow" + slideshowCounter + "'>");
+			pageContext.getOut().println("<script type='text/javascript'>var size = getWindowSize()</script>");
 			
 			List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF/galleries" + getPackageName()));
 			if (isRandom())
@@ -112,27 +120,25 @@ public class SlideshowTag implements Tag {
 			
 			for (String imagePath : images) {
 				if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
-					//Default case is to scale images to fit screen.
-					if (getSize() == 0){
-						pageContext.getOut().println("<img id='slideshow" + slideshowCounter + "image" + imageCounter + "' src='' alt='You need Javascript enabled to view this image' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
+					//Negative numbers are interpreted as 'full screen - X pixels', where X is the negative number
+					if (getSize() < 0){
+						pageContext.getOut().println("<img id='slideshow" + slideshowCounter + "image" + imageCounter + "' src='' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute;'/>");
 						pageContext.getOut().println("" +
 								"<script type='text/javascript'>\n" +
-								"var size = getWindowSize();\n" +
-								"var image = document.getElementById('slideshow" + slideshowCounter + "image" + imageCounter + "');\n" +
-								"var baseImageSrc = '" + Common.getUrlStubFromFile(pageContext, imagePath) + "';\n" +
-								"var height = Math.round(size.height / 100) * 100; console.log(height);" +
-								"baseImageSrc = baseImageSrc.replace(/XXX_SIZE_XXX/, height + 'h');\n" +
-								"baseImageSrc = baseImageSrc.replace(/YYY_QUALITY_YYY/, '" + getQuality() + "');\n" +
-								"image.src = baseImageSrc;\n" +
-								"</script>");
+								//We round down to 100px even, make it more likely that others will have already seen the image (and it will be cached at this size)
+								"document.getElementById('slideshow" + slideshowCounter + "image" + imageCounter + "').src = '" + Common.getUrlStubFromFile(pageContext, imagePath) + "'.replace(/XXX_SIZE_XXX/, (Math.round(size.height / 100) * 100) + " + getSize() + " + 'h').replace(/YYY_QUALITY_YYY/, '" + getQuality() + "');");
+						
+						if (isCenter()){
+							pageContext.getOut().println("document.getElementById('slideshow" + slideshowCounter + "image" + imageCounter + "').onload = function(){var image = document.getElementById('slideshow" + slideshowCounter + "image" + imageCounter + "'); image.style.left = ((size.width - image.naturalWidth) / 2) + 'px'; image.style.top = ((size.height - image.naturalHeight - 100) / 2) + 'px';}");
+						}
+						
+						pageContext.getOut().println("</script>");
 					}
-					else if (getSize() == 1){
+					//Zero size is full image, no matter what the resolution
+					else if (getSize() == 0){
 						pageContext.getOut().println("<img id='slideshow" + slideshowCounter + "image" + imageCounter + "' src='" + Common.getFullQualityUrlFromFile(pageContext, imagePath) + "' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
 					}
-//					else if (getSize() == -1){
-//						pageContext.getOut().println("<img id='" +  + "' src='" + Common.getUrlFromFile(pageContext, imagePath, getSize(), getQuality()) + "' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
-//						pageContext.getOut().println();
-//					}
+					//Otherwise, interpret as 'normal' moss JSP photo sizes (hypotenuse)
 					else{
 						pageContext.getOut().println("<img id='slideshow" + slideshowCounter + "image" + imageCounter + "' src='" + Common.getUrlFromFile(pageContext, imagePath, getSize(), getQuality()) + "' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
 					}

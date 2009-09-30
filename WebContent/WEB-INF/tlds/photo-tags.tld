@@ -78,6 +78,10 @@
 		<attribute>
 			<name>random</name>
 			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>center</name>
+			<required>false</required>
 		</attribute>		
 		<attribute>
 			<name>quality</name>

@@ -90,8 +90,15 @@ public class ImageConverterCallable implements Serializable, Callable<byte[]> {
 					
 				}
 
-				//Find the image dimensions
-				Dimension d = getScaledDimension(bi.getWidth(), bi.getHeight());
+				//Find the image dimensions based on requirements
+				String sizeType = this.sizeType;
+				if (rotationDegrees == 90 || rotationDegrees == 270){
+					if ("w".equals(sizeType))
+						sizeType = "h";
+					else if ("h".equals(sizeType))
+						sizeType = "w";
+				}
+				Dimension d = getScaledDimension(bi.getWidth(), bi.getHeight(), sizeType);
 
 				
 				bi = getBufferedImage(bi.getScaledInstance(d.width, d.height, Image.SCALE_SMOOTH));
@@ -158,7 +165,7 @@ public class ImageConverterCallable implements Serializable, Callable<byte[]> {
 		 * the size type is 'h', 'w', or null, we will either set the scale
 		 * based off of height, width, or a calculation of the hypotenuse.
 		 */
-		private Dimension getScaledDimension(int w, int h){
+		private Dimension getScaledDimension(int w, int h, String sizeType){
 			Dimension d;
 			if ("w".equals(sizeType)){
 				d = new Dimension(size, (int) ((double) h / w * size));
