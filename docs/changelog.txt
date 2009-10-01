@@ -1,3 +1,6 @@
+1.3.0.1 - September 30 2009
+-Refactored slideshow, cleaned up code, added loading image  
+
 1.3.0.0 - September 27 2009
 -Added slideshow tag, shows images in sequence, fading between each
 -Renamed project to 'photos' from 'gallery', as it now has multiple photo / image related tags included.

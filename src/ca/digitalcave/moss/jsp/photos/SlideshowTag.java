@@ -21,7 +21,9 @@ public class SlideshowTag implements Tag {
 	private boolean center = false;
 	
 	private int fadeSpeed = 25;
-	private int photoSpeed = 5000;
+	private int photoSpeed = 4000;
+	
+	private String loadingImage = "images/slideshow-loading.gif";
 	
 	private String matchRegex = ".*png|.*jpg|.*jpeg|.*bmp|.*png|.*gif";
 	private String excludeRegex = "\\..*"; //Hide all dot files
@@ -35,7 +37,12 @@ public class SlideshowTag implements Tag {
 	public void setPackageName(String packageName) {
 		this.packageName = packageName;
 	}
-	
+	public String getLoadingImage() {
+		return loadingImage;
+	}
+	public void setLoadingImage(String loadingImage) {
+		this.loadingImage = loadingImage;
+	}
 	public boolean isRandom() {
 		return random;
 	}
@@ -105,12 +112,15 @@ public class SlideshowTag implements Tag {
 	public int doStartTag() throws JspException {
 		try {
 			int imageCounter = 0;
-						
+			
+			
+			
 //			pageContext.getOut().println("<script type='text/javascript'>function startSlideshow(){new SlideShow(document.getElementById('slideshow" + slideshowCounter + "'), " + getFadeSpeed() + ", " + getPhotoSpeed() + ", false); alert('Foo');} window.onLoad = startSlideshow;</script>");			
 //			pageContext.getOut().println("<script type='text/javascript'>new SlideShow(document.getElementById('slideshow" + slideshowCounter + "'), " + getFadeSpeed() + ", " + getPhotoSpeed() + ", false); alert('Foo');</script>");
-			pageContext.getOut().println("<div style='position: relative; clear: both;'>");
-			pageContext.getOut().println("<span id='slideshow" + slideshowCounter + "'>");
-			pageContext.getOut().println("<script type='text/javascript'>var size = getWindowSize()</script>");
+			pageContext.getOut().println("<img id='slideshowLoadingImage' src='" + getLoadingImage() + "' alt='Loading Slideshow (requires Javascript)...' style='position: absolute;'>");
+			pageContext.getOut().println("<span id='slideshow" + slideshowCounter + "' style='position: relative;'>");
+			pageContext.getOut().println("</span>");
+//			pageContext.getOut().println("<script type='text/javascript'>var size = getWindowSize()</script>");
 			
 			List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF/galleries" + getPackageName()));
 			if (isRandom())
@@ -118,39 +128,47 @@ public class SlideshowTag implements Tag {
 			else
 				Collections.sort(images);
 			
+//			for (String imagePath : images) {
+//				if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
+//					//Negative numbers are interpreted as 'full screen - X pixels', where X is the negative number
+//					if (getSize() < 0){
+//						pageContext.getOut().println("<img id='slideshow" + slideshowCounter + "image" + imageCounter + "' src='' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute;'/>");
+//						pageContext.getOut().println("" +
+//								"<script type='text/javascript'>\n" +
+//								//We round down to 100px even, make it more likely that others will have already seen the image (and it will be cached at this size)
+//								"document.getElementById('slideshow" + slideshowCounter + "image" + imageCounter + "').src = '" + Common.getUrlStubFromFile(pageContext, imagePath) + "'.replace(/XXX_SIZE_XXX/, (Math.round(size.height / 100) * 100) + " + getSize() + " + 'h').replace(/YYY_QUALITY_YYY/, '" + getQuality() + "');");
+//						
+//						if (isCenter()){
+//							pageContext.getOut().println("document.getElementById('slideshow" + slideshowCounter + "image" + imageCounter + "').onload = function(){var image = document.getElementById('slideshow" + slideshowCounter + "image" + imageCounter + "'); image.style.left = ((size.width - image.naturalWidth) / 2) + 'px'; image.style.top = ((size.height - image.naturalHeight - 100) / 2) + 'px';}");
+//						}
+//						
+//						pageContext.getOut().println("</script>");
+//					}
+//					//Zero size is full image, no matter what the resolution
+//					else if (getSize() == 0){
+//						pageContext.getOut().println("<img id='slideshow" + slideshowCounter + "image" + imageCounter + "' src='" + Common.getFullQualityUrlFromFile(pageContext, imagePath) + "' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
+//					}
+//					//Otherwise, interpret as 'normal' moss JSP photo sizes (hypotenuse)
+//					else{
+//						pageContext.getOut().println("<img id='slideshow" + slideshowCounter + "image" + imageCounter + "' src='" + Common.getUrlFromFile(pageContext, imagePath, getSize(), getQuality()) + "' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
+//					}
+//				}
+//				
+//				imageCounter++;
+//			}
+//
+//			pageContext.getOut().println("<span/>");
+			
+			pageContext.getOut().println("<script type='text/javascript'>");
+			pageContext.getOut().println("var size = getWindowSize(); var sourceList = [");
 			for (String imagePath : images) {
 				if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
-					//Negative numbers are interpreted as 'full screen - X pixels', where X is the negative number
-					if (getSize() < 0){
-						pageContext.getOut().println("<img id='slideshow" + slideshowCounter + "image" + imageCounter + "' src='' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute;'/>");
-						pageContext.getOut().println("" +
-								"<script type='text/javascript'>\n" +
-								//We round down to 100px even, make it more likely that others will have already seen the image (and it will be cached at this size)
-								"document.getElementById('slideshow" + slideshowCounter + "image" + imageCounter + "').src = '" + Common.getUrlStubFromFile(pageContext, imagePath) + "'.replace(/XXX_SIZE_XXX/, (Math.round(size.height / 100) * 100) + " + getSize() + " + 'h').replace(/YYY_QUALITY_YYY/, '" + getQuality() + "');");
-						
-						if (isCenter()){
-							pageContext.getOut().println("document.getElementById('slideshow" + slideshowCounter + "image" + imageCounter + "').onload = function(){var image = document.getElementById('slideshow" + slideshowCounter + "image" + imageCounter + "'); image.style.left = ((size.width - image.naturalWidth) / 2) + 'px'; image.style.top = ((size.height - image.naturalHeight - 100) / 2) + 'px';}");
-						}
-						
-						pageContext.getOut().println("</script>");
-					}
-					//Zero size is full image, no matter what the resolution
-					else if (getSize() == 0){
-						pageContext.getOut().println("<img id='slideshow" + slideshowCounter + "image" + imageCounter + "' src='" + Common.getFullQualityUrlFromFile(pageContext, imagePath) + "' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
-					}
-					//Otherwise, interpret as 'normal' moss JSP photo sizes (hypotenuse)
-					else{
-						pageContext.getOut().println("<img id='slideshow" + slideshowCounter + "image" + imageCounter + "' src='" + Common.getUrlFromFile(pageContext, imagePath, getSize(), getQuality()) + "' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
-					}
+					pageContext.getOut().println("'" + Common.getUrlStubFromFile(pageContext, imagePath) + "'.replace(/XXX_SIZE_XXX/, (Math.round(size.height / 100) * 100) + " + getSize() + " + 'h').replace(/YYY_QUALITY_YYY/, '" + getQuality() + "'),");
 				}
-				
-				imageCounter++;
 			}
-
-			pageContext.getOut().println("<span/>");
-			pageContext.getOut().println("</div>");
-			
-			pageContext.getOut().println("<script type='text/javascript'>window.onLoad = new SlideShow(document.getElementById('slideshow" + slideshowCounter + "'), " + getFadeSpeed() + ", " + getPhotoSpeed() + ", false);</script>");
+			pageContext.getOut().println("];");
+			pageContext.getOut().println("window.onLoad = startSlideshow(document.getElementById('slideshow" + slideshowCounter + "'), sourceList, " + getFadeSpeed() + ", " + getPhotoSpeed() + ", " + isCenter() + ");");
+			pageContext.getOut().println("</script>");
 			
 //			slideshowCounter++;
 		} 
