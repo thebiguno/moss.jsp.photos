@@ -26,7 +26,6 @@ function startSlideshow(slideel, sourceList, fadeSpeed, photoSpeed, center) {
 	// time it will work (as the width and height are already defined); otherwise, we will
 	// have to schedule the onload event.
 	//If the image is in cache already, it will not fire an onload event on some browsers.
-	console.log(center);
 	if (center){
 		var slideshowLoadingImage = document.getElementById('slideshowLoadingImage');
 		slideshowLoadingImage.style.left = ((size.width - slideshowLoadingImage.naturalWidth) / 2) + 'px'; 
