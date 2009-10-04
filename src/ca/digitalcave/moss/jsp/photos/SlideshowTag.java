@@ -20,7 +20,7 @@ public class SlideshowTag implements Tag {
 	private boolean random = false;
 	private boolean center = false;
 	
-	private int fadeSpeed = 25;
+	private int fadeSpeed = 500;
 	private int photoSpeed = 4000;
 	
 	private String loadingImage = "images/slideshow-loading.gif";
@@ -113,7 +113,6 @@ public class SlideshowTag implements Tag {
 		try {
 			int imageCounter = 0;
 			
-			pageContext.getOut().println("<img id='slideshow" + imageCounter + "' src='" + getLoadingImage() + "' alt='Loading Slideshow (requires Javascript)...' style='position: absolute;'>");
 			
 			List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF/galleries" + getPackageName()));
 			if (isRandom())
@@ -121,16 +120,19 @@ public class SlideshowTag implements Tag {
 			else
 				Collections.sort(images);
 			
-			pageContext.getOut().println("<script type='text/javascript'>");
-			pageContext.getOut().println("var size = getWindowSize(); var sourceList = [");
-			for (String imagePath : images) {
-				if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
-					pageContext.getOut().println("'" + Common.getUrlStubFromFile(pageContext, imagePath) + "'.replace(/XXX_SIZE_XXX/, (Math.round(size.height / 100) * 100) + " + getSize() + " + 'h').replace(/YYY_QUALITY_YYY/, '" + getQuality() + "'),");
+			if (images.size() > 0){
+				pageContext.getOut().println("<div id='slideshow" + imageCounter + "div'><img id='slideshow" + imageCounter + "' src='" + Common.getUrlStubFromFile(pageContext, images.get(0)).replace("XXX_SIZE_XXX", "640h").replace("YYY_QUALITY_YYY", "" + getQuality()) + "' alt='' style='position: absolute;'/></div>");
+				pageContext.getOut().println("<script type='text/javascript'>");
+				pageContext.getOut().println("var size = getWindowSize(); var sourceList = [");				
+				for (String imagePath : images) {
+					if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
+						pageContext.getOut().println("'" + Common.getUrlStubFromFile(pageContext, imagePath) + "'.replace(/XXX_SIZE_XXX/, (Math.round(size.height / 100) * 100) + " + getSize() + " + 'h').replace(/YYY_QUALITY_YYY/, '" + getQuality() + "'),");
+					}
 				}
+				pageContext.getOut().println("];");
+				pageContext.getOut().println("new Slideshow(document.getElementById('slideshow" + slideshowCounter + "'), sourceList, " + getFadeSpeed() + ", " + getPhotoSpeed() + ", " + isCenter() + ");");
+				pageContext.getOut().println("</script>");
 			}
-			pageContext.getOut().println("];");
-			pageContext.getOut().println("new Slideshow(document.getElementById('slideshow" + slideshowCounter + "'), sourceList, " + getFadeSpeed() + ", " + getPhotoSpeed() + ", " + isCenter() + ");");
-			pageContext.getOut().println("</script>");
 		} 
 		catch(IOException ioe) {
 			throw new JspTagException("An IOException occurred.");
