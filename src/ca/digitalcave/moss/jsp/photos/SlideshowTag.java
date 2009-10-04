@@ -23,8 +23,6 @@ public class SlideshowTag implements Tag {
 	private int fadeSpeed = 500;
 	private int photoSpeed = 4000;
 	
-	private String loadingImage = "images/slideshow-loading.gif";
-	
 	private String matchRegex = ".*png|.*jpg|.*jpeg|.*bmp|.*png|.*gif";
 	private String excludeRegex = "\\..*"; //Hide all dot files
 	
@@ -36,12 +34,6 @@ public class SlideshowTag implements Tag {
 
 	public void setPackageName(String packageName) {
 		this.packageName = packageName;
-	}
-	public String getLoadingImage() {
-		return loadingImage;
-	}
-	public void setLoadingImage(String loadingImage) {
-		this.loadingImage = loadingImage;
 	}
 	public boolean isRandom() {
 		return random;

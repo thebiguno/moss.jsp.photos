@@ -92,10 +92,6 @@
 			<required>false</required>
 		</attribute>
 		<attribute>
-			<name>loadingImage</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
 			<name>photoSpeed</name>
 			<required>false</required>
 		</attribute>
