@@ -28,13 +28,12 @@ function Slideshow(image, sourceList, fadeSpeed, photoSpeed, center) {
 	
 	function nextImage(){
 		if (opacity <= 0.0){
-//			console.log("switch image");
-			image.onload = function() {
+			image.onload=function(){
 				//Center image if desired
-				if (center){
-					var size = getWindowSize();
+				if (center && image.naturalWidth){
+					var size=getWindowSize();
 					image.style.left = ((size.width - image.naturalWidth) / 2) + 'px';
-					image.style.top = ((size.height - image.naturalHeight - 100) / 2) + 'px';					
+					image.style.top = ((size.height - image.naturalHeight-100) / 2) + 'px;';					
 				}
 				
 				//Start fading in
@@ -52,8 +51,6 @@ function Slideshow(image, sourceList, fadeSpeed, photoSpeed, center) {
 		}
 		//If we are supposed to be fading in...
 		else if (fadeIn){
-//			console.log("fade in");
-//			console.log(opacity);
 			//If we are still fading in
 			if (opacity < 1.0){
 				opacity += 1.0 / fadeSteps;
@@ -70,10 +67,7 @@ function Slideshow(image, sourceList, fadeSpeed, photoSpeed, center) {
 				}, photoSpeed);				
 			}
 		}
-		else if (!fadeIn){
-//			console.log("fade out");
-//			console.log(opacity);
-			
+		else if (!fadeIn){			
 			//If we are still fading in
 			if (opacity > 0){
 				opacity = opacity - 1.0 / fadeSteps;
