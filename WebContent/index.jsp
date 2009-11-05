@@ -9,7 +9,7 @@
 </head>
 <body>
 
-<p:slideshow packageName="/img" center="true" size="-100"/>
+<p:gallery packageName="/img" />
 
 
 </body>

@@ -48,7 +48,7 @@ public class ImageFilter implements Filter {
 	private Logger logger = Logger.getLogger(ImageFilter.class.getName());
 	
 	//private final static ExecutorService executor = new ThreadPoolExecutor(1, 1, 10, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
-	private final static ExecutorService executor = new ThreadPoolExecutor(2, 3, 10, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+	private final static ExecutorService executor = new ThreadPoolExecutor(2, 3, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 	
 	public void init(FilterConfig config) throws ServletException {
 		this.config = config;

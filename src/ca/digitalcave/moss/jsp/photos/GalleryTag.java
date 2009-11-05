@@ -119,9 +119,14 @@ public class GalleryTag implements Tag {
 		return parent;
 	}
 
+	private static int counter = 0;
+	
 	@SuppressWarnings("unchecked")
 	public int doStartTag() throws JspException {
 		try {
+//			pageContext.getOut().println("<script type='text/javascript'>");
+//			pageContext.getOut().println("var size = getWindowSize();");
+//			pageContext.getOut().println("</script>");
 			pageContext.getOut().println("<div class='gallery'>");
 			pageContext.getOut().println("<div class='gallery-start'></div>");
 			
@@ -133,9 +138,10 @@ public class GalleryTag implements Tag {
 					pageContext.getOut().println("\n\n\n<div class='gallery-image'>");
 					pageContext.getOut().println("<div class='gallery-frame'>");
 					if (isIncludeLink()){
-						pageContext.getOut().println("<a href='" + Common.getUrlFromFile(pageContext, imagePath, getFullSize(), getFullQuality()) + "' rel='lightbox[" + getPackageName().replaceAll("/", "_") + "]'>");
+						pageContext.getOut().println("<a id='lightbox" + counter + "' href='" + Common.getUrlFromFile(pageContext, imagePath, getFullSize(), getFullQuality()) + "' rel='lightbox[" + getPackageName().replaceAll("/", "_") + "]'>");
+//						pageContext.getOut().println("<script type='text/javascript'>var a = document.getElementById('lightbox" + counter + "'); a.href=a.href.replace(/_" + getFullSize() + "_/, '_' + size.height + 'h_');</script>");
 					}
-					pageContext.getOut().println("<img src='" + Common.getUrlFromFile(pageContext, imagePath, getThumbSize(), getThumbQuality()) + "' alt=''/>");
+					pageContext.getOut().println("<img src='" + Common.getUrlFromFile(pageContext, imagePath, getThumbSize(), getThumbQuality()) + "' alt=''></img>");
 					if (isIncludeLink()){
 						pageContext.getOut().println("</a>");
 					}

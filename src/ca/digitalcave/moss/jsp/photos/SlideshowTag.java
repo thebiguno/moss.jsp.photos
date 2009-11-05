@@ -113,13 +113,13 @@ public class SlideshowTag implements Tag {
 				Collections.sort(images);
 			
 			if (images.size() > 0){
-				pageContext.getOut().println("<div id='slideshow" + imageCounter + "div'><img id='slideshow" + imageCounter + "' src='" + Common.getUrlStubFromFile(pageContext, images.get(0)).replace("XXX_SIZE_XXX", "640h").replace("YYY_QUALITY_YYY", "" + getQuality()) + "' alt='' style='position: absolute;'/></div>");
+				pageContext.getOut().println("<div id='slideshow" + imageCounter + "div'><img id='slideshow" + imageCounter + "' src='" + Common.getUrlStubFromFile(pageContext, images.get(0)).replace("XXX_SIZE_XXX", "400h").replace("YYY_QUALITY_YYY", "" + getQuality()) + "' alt=''/></div>");
 				pageContext.getOut().println("<script type='text/javascript'>");
-				pageContext.getOut().println("var size = getWindowSize(); var sourceList = [");
-				for (int i = 0; i < images.size(); i++){
+				pageContext.getOut().println("var size = getWindowSize(); var sourceList = [");				
+				for (int i = 0; i < images.size(); i++) {
 					String imagePath = images.get(i);
 					if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
-						pageContext.getOut().print("'" + Common.getUrlStubFromFile(pageContext, imagePath) + "'.replace(/XXX_SIZE_XXX/, (Math.round(size.height / 100) * 100) + " + getSize() + " + 'h').replace(/YYY_QUALITY_YYY/, '" + getQuality() + "')");
+						pageContext.getOut().print("'" + Common.getUrlStubFromFile(pageContext, imagePath) + "'.replace(/XXX_SIZE_XXX/, (Math.round(Math.min(size.width, size.height) / 100) * 100) + " + getSize() + " + (size.width > size.height ? 'h' : 'w')).replace(/YYY_QUALITY_YYY/, '" + getQuality() + "')");
 						if (i < (images.size() - 1))
 							pageContext.getOut().println(",");
 					}
