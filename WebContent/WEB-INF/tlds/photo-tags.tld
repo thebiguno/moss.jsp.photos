@@ -3,16 +3,16 @@
 <taglib> 
 	<tlib-version>2.2.3</tlib-version> 
 	<jsp-version>2.1</jsp-version>
-	<short-name>g</short-name>
-	<uri>/gallery-tags</uri>
-	<display-name>JSP Gallery Tags</display-name>
-	<description>Easily add photo galleries to JSP pages, using Lightbox 2 to display the images.</description>
+	<short-name>p</short-name>
+	<uri>/photo-tags</uri>
+	<display-name>JSP Photo Tags</display-name>
+	<description>Easily add photo galleries and slideshows to JSP pages, using Lightbox 2 to display the gallery images, and a javascript to show the slideshow.</description>
 
 
 	<tag> 
 		<name>header</name> 
 		<tag-class>ca.digitalcave.moss.jsp.photos.PhotosHeaderTag</tag-class>
-		<description>Lightbox Include files - must be placed in HTML Header for the gallery tag to work</description> 
+		<description>Include files - must be placed in HTML Header for the photo tags to work</description> 
 	</tag>
 	
 	<tag> 
@@ -73,10 +73,26 @@
 		</attribute>
 		<attribute>
 			<name>size</name>
-			<required>true</required>
+			<required>false</required>
 		</attribute>
 		<attribute>
+			<name>random</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>center</name>
+			<required>false</required>
+		</attribute>		
+		<attribute>
 			<name>quality</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>fadeSpeed</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>photoSpeed</name>
 			<required>false</required>
 		</attribute>
 		<attribute>

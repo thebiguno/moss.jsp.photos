@@ -15,11 +15,18 @@ public class SlideshowTag implements Tag {
 	private Tag parent = null;
 
 	private String packageName = ".";
-	private int size = 600;
+	private int size = -100; //Default to slightly smaller than full window
 	private int quality = 85;
+	private boolean random = false;
+	private boolean center = false;
+	
+	private int fadeSpeed = 500;
+	private int photoSpeed = 4000;
 	
 	private String matchRegex = ".*png|.*jpg|.*jpeg|.*bmp|.*png|.*gif";
 	private String excludeRegex = "\\..*"; //Hide all dot files
+	
+	private int slideshowCounter = 0; //Used to ensure unique divs on each load
 
 	public String getPackageName() {
 		return packageName;
@@ -28,7 +35,18 @@ public class SlideshowTag implements Tag {
 	public void setPackageName(String packageName) {
 		this.packageName = packageName;
 	}
-	
+	public boolean isRandom() {
+		return random;
+	}
+	public void setRandom(boolean random) {
+		this.random = random;
+	}
+	public boolean isCenter() {
+		return center;
+	}
+	public void setCenter(boolean center) {
+		this.center = center;
+	}
 	public int getSize() {
 		return size;
 	}
@@ -40,6 +58,18 @@ public class SlideshowTag implements Tag {
 	}
 	public void setQuality(int quality) {
 		this.quality = quality;
+	}
+	public int getFadeSpeed() {
+		return fadeSpeed;
+	}
+	public void setFadeSpeed(int fadeSpeed) {
+		this.fadeSpeed = fadeSpeed;
+	}
+	public int getPhotoSpeed() {
+		return photoSpeed;
+	}
+	public void setPhotoSpeed(int photoSpeed) {
+		this.photoSpeed = photoSpeed;
 	}
 	
 	public String getMatchRegex() {
@@ -73,24 +103,31 @@ public class SlideshowTag implements Tag {
 	@SuppressWarnings("unchecked")
 	public int doStartTag() throws JspException {
 		try {
-
+			int imageCounter = 0;
 			
-			pageContext.getOut().println("<script type='text/javascript'>window.addEvent('load', function() {new SlideShow(document.getElementById('slideshow'), 50, 5000, false);});</script>");
-			
-			pageContext.getOut().println("<div style='position: relative; clear: both;'>");
-			pageContext.getOut().println("<span id='slideshow'>");
 			
 			List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF/galleries" + getPackageName()));
-			Collections.sort(images);
+			if (isRandom())
+				Collections.shuffle(images);
+			else
+				Collections.sort(images);
 			
-			for (String imagePath : images) {
-				if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
-					pageContext.getOut().println("<img src='" + Common.getUrlFromFile(pageContext, imagePath, getSize(), getQuality()) + "' alt='' class='slideshow' style='opacity: 0; filter:alpha(opacity=0);position: absolute; top: 0px; left: 0px'/>");
+			if (images.size() > 0){
+				pageContext.getOut().println("<div id='slideshow" + imageCounter + "div'><img id='slideshow" + imageCounter + "' src='" + Common.getUrlStubFromFile(pageContext, images.get(0)).replace("XXX_SIZE_XXX", "640h").replace("YYY_QUALITY_YYY", "" + getQuality()) + "' alt='' style='position: absolute;'/></div>");
+				pageContext.getOut().println("<script type='text/javascript'>");
+				pageContext.getOut().println("var size = getWindowSize(); var sourceList = [");
+				for (int i = 0; i < images.size(); i++){
+					String imagePath = images.get(i);
+					if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
+						pageContext.getOut().print("'" + Common.getUrlStubFromFile(pageContext, imagePath) + "'.replace(/XXX_SIZE_XXX/, (Math.round(size.height / 100) * 100) + " + getSize() + " + 'h').replace(/YYY_QUALITY_YYY/, '" + getQuality() + "')");
+						if (i < (images.size() - 1))
+							pageContext.getOut().println(",");
+					}
 				}
+				pageContext.getOut().println("];");
+				pageContext.getOut().println("new Slideshow(document.getElementById('slideshow" + slideshowCounter + "'), sourceList, " + getFadeSpeed() + ", " + getPhotoSpeed() + ", " + isCenter() + ");");
+				pageContext.getOut().println("</script>");
 			}
-
-			pageContext.getOut().println("<span/>");
-			pageContext.getOut().println("</div>");
 		} 
 		catch(IOException ioe) {
 			throw new JspTagException("An IOException occurred.");

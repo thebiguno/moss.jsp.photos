@@ -24,7 +24,7 @@ public class GalleryTag implements Tag {
 	private boolean includeLink = true;
 	private boolean showFullQualityDownload = false;
 
-	private String matchRegex = ".*png|.*jpg|.*jpeg|.*bmp|.*png|.*gif";
+	private String matchRegex = "^.*png$|^.*jpg$|^.*jpeg$|^.*bmp$|^.*png$|^.*gif$";
 	private String excludeRegex = "\\..*"; //Hide all dot files
 
 	public boolean isShowFullQualityDownload() {
@@ -123,7 +123,7 @@ public class GalleryTag implements Tag {
 	public int doStartTag() throws JspException {
 		try {
 			pageContext.getOut().println("<div class='gallery'>");
-			pageContext.getOut().println("<div class='gallery-start'/>");
+			pageContext.getOut().println("<div class='gallery-start'></div>");
 			
 			List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF/galleries" + getPackageName()));
 			Collections.sort(images);
@@ -158,7 +158,7 @@ public class GalleryTag implements Tag {
 				}
 			}
 
-			pageContext.getOut().println("<div class='gallery-end'/>");
+			pageContext.getOut().println("<div class='gallery-end'></div>");
 			pageContext.getOut().write("</div> <!-- gallery -->\n");
 
 			if (isShowFullQualityDownload()){

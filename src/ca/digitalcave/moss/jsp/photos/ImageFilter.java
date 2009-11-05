@@ -147,7 +147,7 @@ public class ImageFilter implements Filter {
 		List<String> images = new ArrayList<String>(request.getSession().getServletContext().getResourcePaths("/WEB-INF/galleries" + packageName));
 		
 		for (String image : images) {
-			if (image.matches("^.*\\.[jJ][pP][gG]$")){
+			if (image.toLowerCase().matches("^.*png$|^.*jpg$|^.*jpeg$|^.*bmp$|^.*png$|^.*gif$")){
 				InputStream imageInputStream = config.getServletContext().getResourceAsStream(image);
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				StreamUtil.copyStream(imageInputStream, baos);
@@ -211,7 +211,7 @@ public class ImageFilter implements Filter {
 
 		String[] split = requestUriFile.split(IMAGE_SEPARATOR);
 		boolean fullQuality = false;
-		if (split.length == 3 && split[2].equals("full"))
+		if (split[split.length - 1].equals("full"))
 			fullQuality = true;
 		else if (split.length < 4){
 			response.setStatus(HttpServletResponse.SC_FORBIDDEN);

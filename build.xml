@@ -2,15 +2,15 @@
 <!DOCTYPE project [
 <!ENTITY baseBuild SYSTEM "../ca.digitalcave.build/build.xml.inc">
 ]>
-<project name="JSP Gallery" default="jar" basedir=".">
+<project name="JSP Photos" default="jar" basedir=".">
 
 	<!-- Version number and other build-specific properties -->
 	<property file="etc/build.properties"/>
 
 	<!-- Set up all the project specific properties -->
-	<property name="PROJECT_NAME" value="JSP Gallery"/>
-	<property name="PROJECT_SHORT_NAME" value="moss-jsp-gallery"/>
-	<property name="PROJECT_DESCRIPTION" value="Easily create photo galleries in JSP.  Uses Lightbox 2 to display images."/>
+	<property name="PROJECT_NAME" value="JSP Photos"/>
+	<property name="PROJECT_SHORT_NAME" value="moss-jsp-photos"/>
+	<property name="PROJECT_DESCRIPTION" value="Easily create photo galleries and slideshows in JSP.  Uses Lightbox 2 to display images, and javascript for slideshows."/>
 	<property name="PROJECT_COPYRIGHT" value="Copyright Wyatt Olson"/>
 
     <path id="classpath">

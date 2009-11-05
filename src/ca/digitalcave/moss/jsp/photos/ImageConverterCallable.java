@@ -55,13 +55,6 @@ public class ImageConverterCallable implements Serializable, Callable<byte[]> {
 				BufferedImage bi = ImageIO.read(bis);
 				bis.reset();
 
-
-				
-				//Scale the image
-				Dimension d = getScaledDimension(bi);
-				bi = getBufferedImage(bi.getScaledInstance(d.width, d.height, Image.SCALE_SMOOTH));
-			    
-
 				//Try to load metadata; used for determining image rotation
 			    Metadata metadata = null;
 			    try {
@@ -70,29 +63,21 @@ public class ImageConverterCallable implements Serializable, Callable<byte[]> {
 			    }
 			    catch (JpegProcessingException jpe) {}
 				
-				if (metadata != null){
-					//Create the transform object
-					AffineTransform transform = new AffineTransform();
-					
+			    int rotationDegrees = 0;
+				if (metadata != null){					
 					Directory exifDirectory = metadata.getDirectory(ExifDirectory.class);
 					try {
 						if (exifDirectory.containsTag(ExifDirectory.TAG_ORIENTATION)){
 							int orientation = exifDirectory.getInt(ExifDirectory.TAG_ORIENTATION);
 							switch (orientation) {
 							case 3:
-								//180 Degrees
-						    	transform.translate(bi.getWidth(), bi.getHeight());
-						    	transform.quadrantRotate(2);
+								rotationDegrees = 180;
 								break;
 							case 6:
-								//90 Degrees
-						    	transform.translate(bi.getHeight(), 0);
-						    	transform.quadrantRotate(1);
+								rotationDegrees = 90;
 								break;
 							case 8:
-								//270 Degrees
-						    	transform.translate(0, bi.getWidth());
-						    	transform.quadrantRotate(3);
+								rotationDegrees = 270;
 								break;
 
 							default:
@@ -100,16 +85,51 @@ public class ImageConverterCallable implements Serializable, Callable<byte[]> {
 								break;
 							}
 						}
-						
-						//Do the actual transformations
-						RenderingHints renderingHints = new RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
-						AffineTransformOp op = new AffineTransformOp(transform, renderingHints);
-			    		//BufferedImage dst = op.createCompatibleDestImage(bi, ColorModel.getRGBdefault());
-						bi = op.filter(bi, null);
 					} 
 					catch (MetadataException me){} //No big deal if metadata is not set
 					
 				}
+
+				//Find the image dimensions based on requirements
+				String sizeType = this.sizeType;
+				if (rotationDegrees == 90 || rotationDegrees == 270){
+					if ("w".equals(sizeType))
+						sizeType = "h";
+					else if ("h".equals(sizeType))
+						sizeType = "w";
+				}
+				Dimension d = getScaledDimension(bi.getWidth(), bi.getHeight(), sizeType);
+
+				
+				bi = getBufferedImage(bi.getScaledInstance(d.width, d.height, Image.SCALE_SMOOTH));
+				
+				if (rotationDegrees != 0){
+					//Create the transform object
+					AffineTransform transform = new AffineTransform();
+					switch (rotationDegrees) {
+					case 180:
+						//180 Degrees
+						transform.translate(bi.getWidth(), bi.getHeight());
+						transform.rotate(Math.toRadians(180));
+						break;
+					case 90:
+						//90 Degrees
+						transform.translate(bi.getHeight(), 0);
+						transform.rotate(Math.toRadians(90));
+						break;
+					case 270:
+						//270 Degrees
+						transform.translate(0, bi.getWidth());
+						transform.rotate(Math.toRadians(270));
+						break;
+					}				
+					//Do the actual transformations
+					RenderingHints renderingHints = new RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+					AffineTransformOp op = new AffineTransformOp(transform, renderingHints);
+					//BufferedImage dst = op.createCompatibleDestImage(bi, ColorModel.getRGBdefault());
+					bi = op.filter(bi, null);
+				}
+
 			    
 			    //Get the ImageWriter which allows us to set quality, and write the image
 				ByteArrayOutputStream bos = new ByteArrayOutputStream();				
@@ -145,25 +165,25 @@ public class ImageConverterCallable implements Serializable, Callable<byte[]> {
 		 * the size type is 'h', 'w', or null, we will either set the scale
 		 * based off of height, width, or a calculation of the hypotenuse.
 		 */
-		private Dimension getScaledDimension(BufferedImage i){
+		private Dimension getScaledDimension(int w, int h, String sizeType){
 			Dimension d;
 			if ("w".equals(sizeType)){
-				d = new Dimension(size, size / i.getHeight() * i.getWidth());
+				d = new Dimension(size, (int) ((double) h / w * size));
 			}
 			else if ("h".equals(sizeType)){
-				d = new Dimension(size / i.getWidth() * i.getHeight(), size); 				
+				d = new Dimension((int) ((double) w / h * size), size); 				
 			}
 			else {
 				//We calculate the size of the new image based off the hypotenuse,
 				// scaled such that longer / thin images (those with a higher width 
 				// to height ratio / height to width ratio, depending on which is larger)
 				// get scaled up more than square images.
-				double angle = Math.atan((double) i.getHeight() / (double) i.getWidth());
+				double angle = Math.atan((double) h / (double) w);
 
 				double newHeight = this.size * Math.sin(angle);
 				double newWidth = this.size * Math.cos(angle);
 
-				double scaleFactor = 1 + Math.log10((Math.max((double) i.getWidth(), i.getHeight()) / Math.min((double) i.getWidth(), i.getHeight())));
+				double scaleFactor = 1 + Math.log10((Math.max((double) w, h) / Math.min((double) w, h)));
 
 				d = new Dimension((int) (newWidth * scaleFactor), (int) (newHeight * scaleFactor));
 			}
