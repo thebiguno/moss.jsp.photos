@@ -139,9 +139,6 @@ public class ImageFilter implements Filter {
 		}
 		
 		//Create the zip file
-		response.setContentType("application/zip");
-		response.setHeader("Content-Disposition","inline; filename=" + packageName.replaceAll("[^a-zA-Z0-9_-]", "_").replaceAll("^_", "").replaceAll("_$", "") + ".zip;");
-		
 		ByteArrayOutputStream zipTemp = new ByteArrayOutputStream();
 		ZipOutputStream zout = new ZipOutputStream(zipTemp);
 		
@@ -166,6 +163,9 @@ public class ImageFilter implements Filter {
 		zout.flush();
 		
 		response.setContentLength(zipTemp.size());
+		response.setContentType("application/zip");
+		response.addHeader("Cache-Control", "no-cache");
+		response.setHeader("Content-Disposition","inline; filename=" + packageName.replaceAll("[^a-zA-Z0-9_-]", "_").replaceAll("^_", "").replaceAll("_$", "") + ".zip;");
 		
 		response.getOutputStream().write(zipTemp.toByteArray());
 
