@@ -149,7 +149,7 @@ public class ImageFilter implements Filter {
 		List<String> images = new ArrayList<String>(request.getSession().getServletContext().getResourcePaths("/WEB-INF/galleries" + packageName));
 		
 		for (String image : images) {
-			if (image.matches("^.*\\.[jJ][pP][gG]$")){
+			if (image.toLowerCase().matches("^.*png$|^.*jpg$|^.*jpeg$|^.*bmp$|^.*png$|^.*gif$")){
 				InputStream imageInputStream = config.getServletContext().getResourceAsStream(image);
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				StreamUtil.copyStream(imageInputStream, baos);

@@ -28,12 +28,12 @@ function Slideshow(image, sourceList, fadeSpeed, photoSpeed, center) {
 	
 	function nextImage(){
 		if (opacity <= 0.0){
-			image.onload=function(){
+			image.onload = function() {
 				//Center image if desired
-				if (center && image.naturalWidth){
-					var size=getWindowSize();
+				if (center){
+					var size = getWindowSize();
 					image.style.left = ((size.width - image.naturalWidth) / 2) + 'px';
-					image.style.top = ((size.height - image.naturalHeight-100) / 2) + 'px;';					
+					image.style.top = ((size.height - image.naturalHeight - 100) / 2) + 'px';					
 				}
 				
 				//Start fading in
@@ -46,7 +46,7 @@ function Slideshow(image, sourceList, fadeSpeed, photoSpeed, center) {
 			image.src = sourceList[listCounter];
 
 			listCounter++;
-			if (listCounter >= sourceList.size())
+			if (listCounter >= sourceList.length)
 				listCounter = 0;
 		}
 		//If we are supposed to be fading in...

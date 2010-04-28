@@ -24,7 +24,7 @@ public class GalleryTag implements Tag {
 	private boolean includeLink = true;
 	private boolean showFullQualityDownload = false;
 
-	private String matchRegex = ".*png|.*jpg|.*jpeg|.*bmp|.*png|.*gif";
+	private String matchRegex = "^.*png$|^.*jpg$|^.*jpeg$|^.*bmp$|^.*png$|^.*gif$";
 	private String excludeRegex = "\\..*"; //Hide all dot files
 
 	public boolean isShowFullQualityDownload() {

@@ -125,7 +125,6 @@ public class SlideshowTag implements Tag {
 					}
 				}
 				pageContext.getOut().println("];");
-				//pageContext.getOut().println("document.getElementById('slideshow" + slideshowCounter + "').style.position = 'relative';");
 				pageContext.getOut().println("new Slideshow(document.getElementById('slideshow" + slideshowCounter + "'), sourceList, " + getFadeSpeed() + ", " + getPhotoSpeed() + ", " + isCenter() + ");");
 				pageContext.getOut().println("</script>");
 			}
