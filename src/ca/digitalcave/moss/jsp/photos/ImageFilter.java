@@ -140,8 +140,10 @@ public class ImageFilter implements Filter {
 		
 		//Create the zip file
 		response.setContentType("application/zip");
-		response.setHeader("Content-Disposition","inline; filename=" + packageName.replaceAll("[^a-zA-Z0-9_-]", "_").replaceAll("^_", "").replaceAll("_$", "") + ".zip;"); 
-		ZipOutputStream zout = new ZipOutputStream(response.getOutputStream());
+		response.setHeader("Content-Disposition","inline; filename=" + packageName.replaceAll("[^a-zA-Z0-9_-]", "_").replaceAll("^_", "").replaceAll("_$", "") + ".zip;");
+		
+		ByteArrayOutputStream zipTemp = new ByteArrayOutputStream();
+		ZipOutputStream zout = new ZipOutputStream(zipTemp);
 		
 		//Get a list of files from the context path
 		List<String> images = new ArrayList<String>(request.getSession().getServletContext().getResourcePaths("/WEB-INF/galleries" + packageName));
@@ -162,6 +164,10 @@ public class ImageFilter implements Filter {
 		
 		zout.finish();
 		zout.flush();
+		
+		response.setContentLength(zipTemp.size());
+		
+		response.getOutputStream().write(zipTemp.toByteArray());
 
 		return;
 //		//We load source images from the context path
