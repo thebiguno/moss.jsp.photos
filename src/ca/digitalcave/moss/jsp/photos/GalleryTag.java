@@ -15,10 +15,20 @@ public class GalleryTag implements Tag {
 	private Tag parent = null;
 
 	private String packageName = ".";
+	
+	private String type = "html";
+	
 	private int thumbSize = 256;
 	private int fullSize = 800;
 	private int thumbQuality = 75;
 	private int fullQuality = 85;
+	
+	private String flashBackgroundColor = "222222";
+	private int flashRowCount = 1;
+	private int flashColumnCount = 10;
+	private int flashWidth = 1000;
+	private int flashHeight = 800;
+	private String flashThumbPosition = "BOTTOM";
 	
 	private boolean showTitle = false;
 	private boolean includeLink = true;
@@ -27,6 +37,62 @@ public class GalleryTag implements Tag {
 	private String matchRegex = "^.*png$|^.*jpg$|^.*jpeg$|^.*bmp$|^.*png$|^.*gif$";
 	private String excludeRegex = "\\..*"; //Hide all dot files
 
+	public String getType() {
+		return type;
+	}
+	
+	public void setType(String type) {
+		this.type = type;
+	}
+	
+	public int getFlashHeight() {
+		return flashHeight;
+	}
+	
+	public void setFlashHeight(int flashHeight) {
+		this.flashHeight = flashHeight;
+	}
+	
+	public int getFlashWidth() {
+		return flashWidth;
+	}
+	
+	public void setFlashWidth(int flashWidth) {
+		this.flashWidth = flashWidth;
+	}
+	
+	public String getFlashBackgroundColor() {
+		return flashBackgroundColor;
+	}
+	
+	public void setFlashBackgroundColor(String flashBackgroundColor) {
+		this.flashBackgroundColor = flashBackgroundColor;
+	}
+	
+	public int getFlashColumnCount() {
+		return flashColumnCount;
+	}
+	
+	public void setFlashColumnCount(int flashColumnCount) {
+		this.flashColumnCount = flashColumnCount;
+	}
+	
+	public int getFlashRowCount() {
+		return flashRowCount;
+	}
+	
+	public void setFlashRowCount(int flashRowCount) {
+		this.flashRowCount = flashRowCount;
+	}
+	
+	public String getFlashThumbPosition() {
+		return flashThumbPosition;
+	}
+	
+	public void setFlashThumbPosition(String flashThumbPosition) {
+		this.flashThumbPosition = flashThumbPosition;
+	}
+	
 	public boolean isShowFullQualityDownload() {
 		return showFullQualityDownload;
 	}
@@ -124,48 +190,83 @@ public class GalleryTag implements Tag {
 	@SuppressWarnings("unchecked")
 	public int doStartTag() throws JspException {
 		try {
-//			pageContext.getOut().println("<script type='text/javascript'>");
-//			pageContext.getOut().println("var size = getWindowSize();");
-//			pageContext.getOut().println("</script>");
-			pageContext.getOut().println("<div class='gallery'>");
-			pageContext.getOut().println("<div class='gallery-start'></div>");
-			
-			List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF/galleries" + getPackageName()));
-			Collections.sort(images);
-			
-			for (String imagePath : images) {
-				if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
-					pageContext.getOut().println("\n\n\n<div class='gallery-image'>");
-					pageContext.getOut().println("<div class='gallery-frame'>");
-					if (isIncludeLink()){
-						pageContext.getOut().println("<a id='lightbox" + counter + "' href='" + Common.getUrlFromFile(pageContext, imagePath, getFullSize(), getFullQuality()) + "' rel='lightbox[" + getPackageName().replaceAll("/", "_") + "]'>");
-//						pageContext.getOut().println("<script type='text/javascript'>var a = document.getElementById('lightbox" + counter + "'); a.href=a.href.replace(/_" + getFullSize() + "_/, '_' + size.height + 'h_');</script>");
-					}
-					pageContext.getOut().println("<img src='" + Common.getUrlFromFile(pageContext, imagePath, getThumbSize(), getThumbQuality()) + "' alt=''></img>");
-					if (isIncludeLink()){
-						pageContext.getOut().println("</a>");
-					}
-					if (isShowTitle() || isShowFullQualityDownload()){
-						pageContext.getOut().print("<div class='gallery-title'>");
-						if (isShowTitle()){
-							pageContext.getOut().print(imagePath.replaceAll("^/.*/", "").replaceAll("\\.[a-zA-Z0-9]+", ""));
-						}
-						if (isShowFullQualityDownload()){
-							pageContext.getOut().print("<div class='gallery-image-download'>");
-							pageContext.getOut().print("<a href='" + Common.getFullQualityUrlFromFile(pageContext, imagePath) + "'>");
-							pageContext.getOut().print("Download High Resolution Image");
-							pageContext.getOut().print("</a>");
-							pageContext.getOut().println("</div> <!--gallery-image-download-->");
-						}
-						pageContext.getOut().println("</div> <!--gallery-title-->");
-					}
-					pageContext.getOut().println("</div> <!--gallery-frame-->");
-					pageContext.getOut().println("</div> <!-- gallery-image -->");
-				}
-			}
+			if ("flash".equals(type)){
+				pageContext.getOut().println("<div class='gallery'>");
 
-			pageContext.getOut().println("<div class='gallery-end'></div>");
-			pageContext.getOut().write("</div> <!-- gallery -->\n");
+				final String galleryXml = "gallery.xml?packageName=" + getPackageName() + 
+					"++showTitle=" + isShowTitle() +
+					"++showFullQuality=" + isShowFullQualityDownload() +
+					"++thumbPosition=" + getFlashThumbPosition() +
+					"++rowCount=" + getFlashRowCount() +
+					"++columnCount=" + getFlashColumnCount() +
+					"++fullSize=" + getFullSize() + 
+					"++fullQuality=" + getFullQuality() +
+					"++thumbSize=" + getThumbSize() + 
+					"++thumbQuality=" + getThumbQuality() + 
+					"++matchRegex=" + getMatchRegex() + 
+					"++excludeRegex=" + getExcludeRegex(); 
+				
+				pageContext.getOut().println(
+						"<object width='" + getFlashWidth() + "' height='" + getFlashHeight() + "'>\n" +
+						"<param name=\"movie\" value=\"simpleviewer.swf?galleryURL=" + galleryXml + "\"></param>\n" + 
+						"<param name=\"allowFullScreen\" value=\"true\"></param>\n" +
+						"<param name=\"allowscriptaccess\" value=\"always\"></param>\n" +
+						"<param name=\"bgcolor\" value=\"" + getFlashBackgroundColor() + "\"></param>\n" +
+						"<embed " +
+						"src=\"simpleviewer.swf?galleryURL=" + galleryXml + "\"" + 
+						"type=\"application/x-shockwave-flash\" " +
+						"allowscriptaccess=\"always\" " +
+						"allowfullscreen=\"true\" " +
+						"bgcolor=\"" + getFlashBackgroundColor() + "\" " +
+						"width='" + getFlashWidth() + "' " +
+						"height='" + getFlashHeight() + "'>" + 
+						"</embed>\n" +
+						"</object>\n"
+				);
+				
+				pageContext.getOut().write("</div> <!-- gallery -->\n");
+			}			
+			else { //Fallback to HTML
+				pageContext.getOut().println("<div class='gallery'>");
+				pageContext.getOut().println("<div class='gallery-start'></div>");
+
+				List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF/galleries" + getPackageName()));
+				Collections.sort(images);
+
+				for (String imagePath : images) {
+					if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
+						pageContext.getOut().println("\n\n\n<div class='gallery-image'>");
+						pageContext.getOut().println("<div class='gallery-frame'>");
+						if (isIncludeLink()){
+							pageContext.getOut().println("<a id='lightbox" + counter + "' href='" + Common.getUrlFromFile(pageContext.getServletContext(), imagePath, getFullSize(), getFullQuality()) + "' rel='lightbox[" + getPackageName().replaceAll("/", "_") + "]'>");
+						}
+						pageContext.getOut().println("<img src='" + Common.getUrlFromFile(pageContext.getServletContext(), imagePath, getThumbSize(), getThumbQuality()) + "' alt=''></img>");
+						if (isIncludeLink()){
+							pageContext.getOut().println("</a>");
+						}
+						if (isShowTitle() || isShowFullQualityDownload()){
+							pageContext.getOut().print("<div class='gallery-title'>");
+							if (isShowTitle()){
+								pageContext.getOut().print(imagePath.replaceAll("^/.*/", "").replaceAll("\\.[a-zA-Z0-9]+", ""));
+							}
+							if (isShowFullQualityDownload()){
+								pageContext.getOut().print("<div class='gallery-image-download'>");
+								pageContext.getOut().print("<a href='" + Common.getFullQualityUrlFromFile(pageContext.getServletContext(), imagePath) + "'>");
+								pageContext.getOut().print("Download High Resolution Image");
+								pageContext.getOut().print("</a>");
+								pageContext.getOut().println("</div> <!--gallery-image-download-->");
+							}
+							pageContext.getOut().println("</div> <!--gallery-title-->");
+						}
+						pageContext.getOut().println("</div> <!--gallery-frame-->");
+						pageContext.getOut().println("</div> <!-- gallery-image -->");
+					}
+				}
+
+				pageContext.getOut().println("<div class='gallery-end'></div>");
+				pageContext.getOut().write("</div> <!-- gallery -->\n");
+
+			}
 
 			if (isShowFullQualityDownload()){
 				pageContext.getOut().write("<p><a href='" + pageContext.getServletContext().getContextPath() + ImageFilter.GALLERIES_PATH + packageName + "/all.zip'>Download All High Resolution Images</a></p>");

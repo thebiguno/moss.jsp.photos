@@ -25,6 +25,34 @@
 			<required>true</required>
 		</attribute>
 		<attribute>
+			<name>type</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>flashBackgroundColor</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>flashRowCount</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>flashColumnCount</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>flashThumbPosition</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>flashWidth</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>flashHeight</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
 			<name>thumbSize</name>
 			<required>false</required>
 		</attribute>

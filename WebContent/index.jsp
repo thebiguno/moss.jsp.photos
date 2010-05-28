@@ -9,7 +9,7 @@
 </head>
 <body>
 
-<p:gallery packageName="/img" />
+<p:gallery packageName="/img" type="flash"/>
 
 
 </body>

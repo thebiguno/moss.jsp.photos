@@ -8,7 +8,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -40,6 +43,7 @@ public class ImageFilter implements Filter {
 	final static String JAVASCRIPT_PATH = "/js";
 	final static String CSS_PATH = "/css";
 	final static String IMAGE_PATH = "/images";
+	final static String SWF_PATH = "/swf";
 	final static String GALLERIES_PATH = "/galleries";
 	
 	final static String IMAGE_SEPARATOR = "_";
@@ -75,6 +79,21 @@ public class ImageFilter implements Filter {
 				}
 			}
 		}
+
+		//Flash gallery SWF
+		if (request.getRequestURI().matches(config.getServletContext().getContextPath() + ".*/simpleviewer.swf")){
+			InputStream is = ImageFilter.class.getResourceAsStream("resources/simpleviewer.swf");
+			if (is != null){
+				StreamUtil.copyStream(is, res.getOutputStream());
+				return;
+			}
+		}
+		
+		//Flash gallery XML used to configure the gallery and load images
+		if (request.getRequestURI().matches(config.getServletContext().getContextPath() + ".*/gallery.xml.*")){
+			doServeGalleryXml(request, response);
+			return;
+		}
 		
 		//Gallery images zip - located under /galleries/<packageName>/all.zip
 		if (request.getRequestURI().matches(config.getServletContext().getContextPath() + GALLERIES_PATH + "/.+/all\\.zip")){
@@ -89,6 +108,58 @@ public class ImageFilter implements Filter {
 		
 		
 		chain.doFilter(req, res);
+	}
+	
+	private void doServeGalleryXml(HttpServletRequest request, HttpServletResponse response) throws IOException{
+		final String[] queryTerms = request.getQueryString().split("%20%20");
+		final Map<String, String> query = new HashMap<String, String>();
+		for (String queryTerm : queryTerms) {
+			final String[] queryTermSplit = queryTerm.split("=", 2);
+			if (queryTermSplit.length == 2) query.put(queryTermSplit[0], queryTermSplit[1]);
+		}
+		
+		if (query.get("fullSize") == null || !query.get("fullSize").matches("[0-9]+")) query.put("fullSize", "800");
+		if (query.get("fullQuality") == null || !query.get("fullQuality").matches("[0-9]+")) query.put("fullQuality", "85");
+		if (query.get("thumbSize") == null || !query.get("thumbSize").matches("[0-9]+")) query.put("thumbSize", "130");
+		if (query.get("thumbQuality") == null || !query.get("thumbQuality").matches("[0-9]+")) query.put("thumbQuality", "50");
+		if (query.get("thumbPosition") == null || !query.get("thumbPosition").matches("BOTTOM|TOP|LEFT|RIGHT|NONE")) query.put("thumbPosition", "BOTTOM");
+		if (query.get("rowCount") == null || !query.get("rowCount").matches("[0-9]+")) query.put("rowCount", "1");
+		if (query.get("columnCount") == null || !query.get("columnCount").matches("[0-9]+")) query.put("columnCount", "10");
+		
+		response.getWriter().println(
+				"<?xml version='1.0' encoding='UTF-8'?> " +
+				"<simpleviewergallery " +
+				"galleryStyle='MODERN' " +
+				"textColor='FFFFFF' " +
+				"frameColor='FFFFFF' " +
+				"frameWidth='20' " +
+				"thumbPosition='" + query.get("thumbPosition") + "' " +
+				"thumbColumns='" + Integer.parseInt(query.get("columnCount")) + "' " +
+				"thumbRows='" + Integer.parseInt(query.get("rowCount")) + "' " +
+				"showOpenButton='" + ("true".equals(query.get("showFullQuality")) ? "TRUE" : "FALSE") + "' " +
+				"showFullscreenButton='TRUE' " +
+				">"
+		);
+
+		@SuppressWarnings("unchecked")
+		List<String> images = new ArrayList<String>(config.getServletContext().getResourcePaths("/WEB-INF/galleries" + query.get("packageName")));
+		Collections.sort(images);
+
+		for (String imagePath : images) {
+			if (imagePath.toLowerCase().matches(query.get("matchRegex")) && !imagePath.toLowerCase().matches(query.get("excludeRegex"))){
+				response.getWriter().println(
+						"<image imageURL='" + Common.getUrlFromFile(config.getServletContext(), imagePath, Integer.parseInt(query.get("fullSize")), Integer.parseInt(query.get("fullQuality"))) + "' " + 
+						"thumbURL='" + Common.getUrlFromFile(config.getServletContext(), imagePath, Integer.parseInt(query.get("thumbSize")), Integer.parseInt(query.get("thumbQuality"))) + "' " +
+						"linkURL='" + Common.getFullQualityUrlFromFile(config.getServletContext(), imagePath) + "' " +
+						"linkTarget='' >" +
+						"<caption>" +
+						("true".equals(query.get("showTitle")) ? imagePath.replaceAll("^/.*/", "").replaceAll("\\.[a-zA-Z0-9]+", "") : "") +
+						"</caption>" +	
+				"</image>\n");		
+			}
+		}
+		
+		response.getWriter().println("</simpleviewergallery>");
 	}
 	
 	/**

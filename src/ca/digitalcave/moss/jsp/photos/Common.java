@@ -1,14 +1,15 @@
 package ca.digitalcave.moss.jsp.photos;
 
+import javax.servlet.ServletContext;
 import javax.servlet.jsp.PageContext;
 
 public class Common {
-	public static String getFullQualityUrlFromFile(PageContext pageContext, String path){
+	public static String getFullQualityUrlFromFile(ServletContext servletContext, String path){
 		String packageName = path.replaceAll("^/WEB-INF/galleries", "").replaceAll("/[^/]+$", "");
 		String baseName = path.replaceAll("^/.*/", "").replaceAll("\\.[a-zA-Z0-9]+", "");
 		String ext = path.replaceAll("^.+\\.", "");
 		
-		return (pageContext.getServletContext().getContextPath() 
+		return (servletContext.getContextPath() 
 				+ ImageFilter.GALLERIES_PATH 
 				+ packageName
 				+ "/"
@@ -40,12 +41,12 @@ public class Common {
 
 	}
 	
-	public static String getUrlFromFile(PageContext pageContext, String path, int size, int quality){
+	public static String getUrlFromFile(ServletContext servletContext, String path, int size, int quality){
 		String packageName = path.replaceAll("^/WEB-INF/galleries", "").replaceAll("/[^/]+$", "");
 		String baseName = path.replaceAll("^/.*/", "").replaceAll("\\.[a-zA-Z0-9]+", "");
 		String ext = path.replaceAll("^.+\\.", "");
 		
-		return (pageContext.getServletContext().getContextPath() 
+		return (servletContext.getContextPath() 
 			+ ImageFilter.GALLERIES_PATH 
 			+ packageName
 			+ "/"
