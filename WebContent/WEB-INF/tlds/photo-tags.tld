@@ -29,6 +29,10 @@
 			<required>false</required>
 		</attribute>
 		<attribute>
+			<name>random</name>
+			<required>false</required>
+		</attribute>		
+		<attribute>
 			<name>flashBackgroundColor</name>
 			<required>false</required>
 		</attribute>
@@ -99,6 +103,10 @@
 			<name>packageName</name>
 			<required>true</required>
 		</attribute>
+		<attribute>
+			<name>type</name>
+			<required>false</required>
+		</attribute>		
 		<attribute>
 			<name>size</name>
 			<required>false</required>

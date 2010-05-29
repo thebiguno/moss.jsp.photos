@@ -23,6 +23,8 @@ public class GalleryTag implements Tag {
 	private int thumbQuality = 75;
 	private int fullQuality = 85;
 	
+	private boolean random = false;
+	
 	private String flashBackgroundColor = "222222";
 	private int flashRowCount = 1;
 	private int flashColumnCount = 10;
@@ -37,6 +39,14 @@ public class GalleryTag implements Tag {
 	private String matchRegex = "^.*png$|^.*jpg$|^.*jpeg$|^.*bmp$|^.*png$|^.*gif$";
 	private String excludeRegex = "\\..*"; //Hide all dot files
 
+	public boolean isRandom() {
+		return random;
+	}
+	
+	public void setRandom(boolean random) {
+		this.random = random;
+	}
+	
 	public String getType() {
 		return type;
 	}
@@ -202,7 +212,8 @@ public class GalleryTag implements Tag {
 					"++fullSize=" + getFullSize() + 
 					"++fullQuality=" + getFullQuality() +
 					"++thumbSize=" + getThumbSize() + 
-					"++thumbQuality=" + getThumbQuality() + 
+					"++thumbQuality=" + getThumbQuality() +
+					"++random=" + isRandom() +
 					"++matchRegex=" + getMatchRegex() + 
 					"++excludeRegex=" + getExcludeRegex(); 
 				
@@ -231,7 +242,11 @@ public class GalleryTag implements Tag {
 				pageContext.getOut().println("<div class='gallery-start'></div>");
 
 				List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF/galleries" + getPackageName()));
-				Collections.sort(images);
+				if (isRandom())
+					Collections.shuffle(images);
+				else
+					Collections.sort(images);
+
 
 				for (String imagePath : images) {
 					if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){

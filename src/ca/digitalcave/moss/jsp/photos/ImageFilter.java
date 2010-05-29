@@ -80,6 +80,21 @@ public class ImageFilter implements Filter {
 			}
 		}
 
+		//Flash slideshow SWF
+		if (request.getRequestURI().matches(config.getServletContext().getContextPath() + ".*/flashslide.swf")){
+			InputStream is = ImageFilter.class.getResourceAsStream("resources/flashslide.swf");
+			if (is != null){
+				StreamUtil.copyStream(is, res.getOutputStream());
+				return;
+			}
+		}
+		
+		//Flash slideshow configuration text file
+		if (request.getRequestURI().matches(config.getServletContext().getContextPath() + ".*/slideshow.txt.*")){
+			doServeSlideshowConfig(request, response);
+			return;
+		}
+		
 		//Flash gallery SWF
 		if (request.getRequestURI().matches(config.getServletContext().getContextPath() + ".*/simpleviewer.swf")){
 			InputStream is = ImageFilter.class.getResourceAsStream("resources/simpleviewer.swf");
@@ -109,6 +124,36 @@ public class ImageFilter implements Filter {
 		
 		chain.doFilter(req, res);
 	}
+	
+	private void doServeSlideshowConfig(HttpServletRequest request, HttpServletResponse response) throws IOException{
+		final String[] queryTerms = request.getQueryString().split("%20%20");
+		final Map<String, String> query = new HashMap<String, String>();
+		for (String queryTerm : queryTerms) {
+			final String[] queryTermSplit = queryTerm.split("=", 2);
+			if (queryTermSplit.length == 2) query.put(queryTermSplit[0], queryTermSplit[1]);
+		}
+		
+		if (query.get("size") == null || !query.get("size").matches("[0-9]+")) query.put("size", "800");
+		if (query.get("quality") == null || !query.get("quality").matches("[0-9]+")) query.put("quality", "85");
+		
+		response.getWriter().print("files=");
+
+		@SuppressWarnings("unchecked")
+		List<String> images = new ArrayList<String>(config.getServletContext().getResourcePaths("/WEB-INF/galleries" + query.get("packageName")));
+
+		if ("true".equals(query.get("random")))
+			Collections.shuffle(images);
+		else
+			Collections.sort(images);
+
+		boolean first = true;
+		for (String imagePath : images) {
+			if (imagePath.toLowerCase().matches(query.get("matchRegex")) && !imagePath.toLowerCase().matches(query.get("excludeRegex"))){
+				response.getWriter().print((first ? "" : "|") + Common.getUrlFromFile(config.getServletContext(), imagePath, Integer.parseInt(query.get("size")), Integer.parseInt(query.get("quality"))));
+				first = false;
+			}
+		}
+	}	
 	
 	private void doServeGalleryXml(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		final String[] queryTerms = request.getQueryString().split("%20%20");
@@ -143,7 +188,11 @@ public class ImageFilter implements Filter {
 
 		@SuppressWarnings("unchecked")
 		List<String> images = new ArrayList<String>(config.getServletContext().getResourcePaths("/WEB-INF/galleries" + query.get("packageName")));
-		Collections.sort(images);
+		if ("true".equals(query.get("random")))
+			Collections.shuffle(images);
+		else
+			Collections.sort(images);
+
 
 		for (String imagePath : images) {
 			if (imagePath.toLowerCase().matches(query.get("matchRegex")) && !imagePath.toLowerCase().matches(query.get("excludeRegex"))){

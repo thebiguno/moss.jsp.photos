@@ -20,6 +20,8 @@ public class SlideshowTag implements Tag {
 	private boolean random = false;
 	private boolean center = false;
 	
+	private String type = "html";
+	
 	private int fadeSpeed = 500;
 	private int photoSpeed = 4000;
 	
@@ -28,6 +30,15 @@ public class SlideshowTag implements Tag {
 	
 	private int slideshowCounter = 0; //Used to ensure unique divs on each load
 
+	
+	public String getType() {
+		return type;
+	}
+	
+	public void setType(String type) {
+		this.type = type;
+	}
+	
 	public String getPackageName() {
 		return packageName;
 	}
@@ -48,6 +59,8 @@ public class SlideshowTag implements Tag {
 		this.center = center;
 	}
 	public int getSize() {
+		if ("flash".equals(getType()) && size < 100)
+			size = 100;
 		return size;
 	}
 	public void setSize(int size) {
@@ -103,30 +116,78 @@ public class SlideshowTag implements Tag {
 	@SuppressWarnings("unchecked")
 	public int doStartTag() throws JspException {
 		try {
-			int imageCounter = 0;
 			
-			
-			List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF/galleries" + getPackageName()));
-			if (isRandom())
-				Collections.shuffle(images);
-			else
-				Collections.sort(images);
-			
-			if (images.size() > 0){
-				pageContext.getOut().println("<div id='slideshow" + imageCounter + "div'><img id='slideshow" + imageCounter + "' src='" + Common.getUrlStubFromFile(pageContext, images.get(0)).replace("XXX_SIZE_XXX", "400h").replace("YYY_QUALITY_YYY", "" + getQuality()) + "' alt=''/></div>");
-				pageContext.getOut().println("<script type='text/javascript'>");
-				pageContext.getOut().println("var size = getWindowSize(); var sourceList = [");				
-				for (int i = 0; i < images.size(); i++) {
-					String imagePath = images.get(i);
-					if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
-						pageContext.getOut().print("'" + Common.getUrlStubFromFile(pageContext, imagePath) + "'.replace(/XXX_SIZE_XXX/, (Math.round(Math.min(size.width, size.height) / 100) * 100) + " + getSize() + " + (size.width > size.height ? 'h' : 'w')).replace(/YYY_QUALITY_YYY/, '" + getQuality() + "')");
-						if (i < (images.size() - 1))
-							pageContext.getOut().println(",");
+			if ("flash".equals(getType())){
+				final String slideshowTxt = "slideshow.txt?packageName=" + getPackageName() + 
+				"++size=" + getSize() + 
+				"++quality=" + getQuality() +
+				"++random=" + isRandom() +
+				"++matchRegex=" + getMatchRegex() + 
+				"++excludeRegex=" + getExcludeRegex(); 				
+				
+				pageContext.getOut().println(
+						"<div style='position: relative; width: " + getSize() + "px; height: " + getSize() + "px; overflow:hidden'>" + 
+						"<OBJECT classid='clsid:D27CDB6E-AE6D-11cf-96B8-444553540000'" +
+						"codebase='http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0'" +
+						"WIDTH='2000' HEIGHT='2000' id='flashslide' ALIGN=''>" +
+						"<PARAM NAME=movie " +
+						"VALUE='flashslide.swf?src=flash-here.com&" +
+						"imglist_fn=" + slideshowTxt + "&" +
+						"img_path=&" +
+						"interval=" + getPhotoSpeed() + "&" +
+						"navbar=0&" +
+						"w=" + getSize() + "&" +
+						"h=" + getSize() + "'>" +
+						"<PARAM NAME=quality VALUE=high> " +
+						"<PARAM NAME=scale VALUE=noscale> " +
+						"<PARAM NAME=wmode VALUE=transparent> " +
+						"<PARAM NAME=bgcolor VALUE=#FFFFFF> " +
+						"<EMBED src='flashslide.swf?src=flash-here.com&" +
+						"imglist_fn=" + slideshowTxt + "&" +
+						"img_path=&" +
+						"interval=" + getPhotoSpeed() + "&" +
+						"navbar=0&" +
+						"w=" + getSize() + "&" +
+						"h=" + getSize() + "' " +
+						"quality=high " +
+						"scale=noscale " +
+						"wmode=transparent " +
+						"bgcolor=#FFFFFF  " +
+						"WIDTH='2000' " +
+						"HEIGHT='2000' " +
+						"NAME='flashslide' " +
+						"ALIGN=''" +
+						"TYPE='application/x-shockwave-flash' PLUGINSPAGE='http://www.macromedia.com/go/getflashplayer'></EMBED>" +
+						"</OBJECT>" +
+						"</div>"
+				);
+			}
+			else {
+				int imageCounter = 0;
+
+
+				List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF/galleries" + getPackageName()));
+				if (isRandom())
+					Collections.shuffle(images);
+				else
+					Collections.sort(images);
+
+				if (images.size() > 0){
+					pageContext.getOut().println("<div id='slideshow" + imageCounter + "div'><img id='slideshow" + imageCounter + "' src='" + Common.getUrlStubFromFile(pageContext, images.get(0)).replace("XXX_SIZE_XXX", "400h").replace("YYY_QUALITY_YYY", "" + getQuality()) + "' alt=''/></div>");
+					pageContext.getOut().println("<script type='text/javascript'>");
+					pageContext.getOut().println("var size = getWindowSize(); var sourceList = [");				
+					for (int i = 0; i < images.size(); i++) {
+						String imagePath = images.get(i);
+						if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
+							pageContext.getOut().print("'" + Common.getUrlStubFromFile(pageContext, imagePath) + "'.replace(/XXX_SIZE_XXX/, (Math.round(Math.min(size.width, size.height) / 100) * 100) + " + getSize() + " + (size.width > size.height ? 'h' : 'w')).replace(/YYY_QUALITY_YYY/, '" + getQuality() + "')");
+							if (i < (images.size() - 1))
+								pageContext.getOut().println(",");
+						}
 					}
+					pageContext.getOut().println("];");
+					pageContext.getOut().println("new Slideshow(document.getElementById('slideshow" + slideshowCounter + "'), sourceList, " + getFadeSpeed() + ", " + getPhotoSpeed() + ", " + isCenter() + ");");
+					pageContext.getOut().println("</script>");
 				}
-				pageContext.getOut().println("];");
-				pageContext.getOut().println("new Slideshow(document.getElementById('slideshow" + slideshowCounter + "'), sourceList, " + getFadeSpeed() + ", " + getPhotoSpeed() + ", " + isCenter() + ");");
-				pageContext.getOut().println("</script>");
 			}
 		} 
 		catch(IOException ioe) {
