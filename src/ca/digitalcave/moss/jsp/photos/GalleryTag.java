@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.PageContext;
@@ -15,8 +17,6 @@ public class GalleryTag implements Tag {
 	private Tag parent = null;
 
 	private String packageName = ".";
-	
-	private String type = "html";
 	
 	private int thumbSize = 256;
 	private int fullSize = 800;
@@ -37,7 +37,7 @@ public class GalleryTag implements Tag {
 	private boolean showFullQualityDownload = false;
 
 	private String matchRegex = "^.*png$|^.*jpg$|^.*jpeg$|^.*bmp$|^.*png$|^.*gif$";
-	private String excludeRegex = "\\..*"; //Hide all dot files
+	private String excludeRegex = ".*/\\.[^/]*"; //Hide all dot files
 
 	public boolean isRandom() {
 		return random;
@@ -45,14 +45,6 @@ public class GalleryTag implements Tag {
 	
 	public void setRandom(boolean random) {
 		this.random = random;
-	}
-	
-	public String getType() {
-		return type;
-	}
-	
-	public void setType(String type) {
-		this.type = type;
 	}
 	
 	public int getFlashHeight() {
@@ -199,8 +191,13 @@ public class GalleryTag implements Tag {
 	
 	@SuppressWarnings("unchecked")
 	public int doStartTag() throws JspException {
+		HttpServletRequest request = (HttpServletRequest) pageContext.getRequest();
+		HttpServletResponse response = (HttpServletResponse) pageContext.getResponse();
+		String type = Common.getGalleryType(request, response);
 		try {
 			if ("flash".equals(type)){
+				pageContext.getOut().println("<div class='gallery-type'><a href='" + request.getRequestURI() + "?type=html'>HTML Gallery</a></div>");
+				
 				pageContext.getOut().println("<div class='gallery'>");
 
 				final String galleryXml = "gallery.xml?packageName=" + getPackageName() + 
@@ -238,6 +235,8 @@ public class GalleryTag implements Tag {
 				pageContext.getOut().write("</div> <!-- gallery -->\n");
 			}			
 			else { //Fallback to HTML
+				pageContext.getOut().println("<div class='gallery-type'><a href='" + request.getRequestURI() + "?type=flash'>Flash Gallery</a></div>");				
+				
 				pageContext.getOut().println("<div class='gallery'>");
 				pageContext.getOut().println("<div class='gallery-start'></div>");
 
@@ -280,7 +279,6 @@ public class GalleryTag implements Tag {
 
 				pageContext.getOut().println("<div class='gallery-end'></div>");
 				pageContext.getOut().write("</div> <!-- gallery -->\n");
-
 			}
 
 			if (isShowFullQualityDownload()){

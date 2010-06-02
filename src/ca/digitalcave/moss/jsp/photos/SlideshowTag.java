@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.PageContext;
@@ -20,24 +22,14 @@ public class SlideshowTag implements Tag {
 	private boolean random = false;
 	private boolean center = false;
 	
-	private String type = "html";
-	
 	private int fadeSpeed = 500;
 	private int photoSpeed = 4000;
 	
 	private String matchRegex = ".*png|.*jpg|.*jpeg|.*bmp|.*png|.*gif";
-	private String excludeRegex = "\\..*"; //Hide all dot files
+	private String excludeRegex = ".*/\\.[^/]*"; //Hide all dot files
 	
 	private int slideshowCounter = 0; //Used to ensure unique divs on each load
 
-	
-	public String getType() {
-		return type;
-	}
-	
-	public void setType(String type) {
-		this.type = type;
-	}
 	
 	public String getPackageName() {
 		return packageName;
@@ -59,8 +51,6 @@ public class SlideshowTag implements Tag {
 		this.center = center;
 	}
 	public int getSize() {
-		if ("flash".equals(getType()) && size < 100)
-			size = 100;
 		return size;
 	}
 	public void setSize(int size) {
@@ -115,9 +105,12 @@ public class SlideshowTag implements Tag {
 
 	@SuppressWarnings("unchecked")
 	public int doStartTag() throws JspException {
+		HttpServletRequest request = (HttpServletRequest) pageContext.getRequest();
+		HttpServletResponse response = (HttpServletResponse) pageContext.getResponse();
+		String type = Common.getGalleryType(request, response);		
+		
 		try {
-			
-			if ("flash".equals(getType())){
+			if ("flash".equals(type)){
 				final String slideshowTxt = "slideshow.txt?packageName=" + getPackageName() + 
 				"++size=" + getSize() + 
 				"++quality=" + getQuality() +
@@ -125,6 +118,7 @@ public class SlideshowTag implements Tag {
 				"++matchRegex=" + getMatchRegex() + 
 				"++excludeRegex=" + getExcludeRegex(); 				
 				
+				pageContext.getOut().println("<div class='slideshow-type'><a href='" + request.getRequestURI() + "?type=html'>HTML Slideshow</a></div>");
 				pageContext.getOut().println(
 						"<div style='position: relative; width: " + getSize() + "px; height: " + getSize() + "px; overflow:hidden'>" + 
 						"<OBJECT classid='clsid:D27CDB6E-AE6D-11cf-96B8-444553540000'" +
@@ -163,9 +157,6 @@ public class SlideshowTag implements Tag {
 				);
 			}
 			else {
-				int imageCounter = 0;
-
-
 				List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF/galleries" + getPackageName()));
 				if (isRandom())
 					Collections.shuffle(images);
@@ -173,19 +164,22 @@ public class SlideshowTag implements Tag {
 					Collections.sort(images);
 
 				if (images.size() > 0){
-					pageContext.getOut().println("<div id='slideshow" + imageCounter + "div'><img id='slideshow" + imageCounter + "' src='" + Common.getUrlStubFromFile(pageContext, images.get(0)).replace("XXX_SIZE_XXX", "400h").replace("YYY_QUALITY_YYY", "" + getQuality()) + "' alt=''/></div>");
+					pageContext.getOut().println("<div class='slideshow-type'><a href='" + request.getRequestURI() + "?type=flash'>Flash Slideshow</a></div>");					
+					pageContext.getOut().println("<div id='slideshow" + slideshowCounter + "div'><img id='slideshow" + slideshowCounter + "' src='" + Common.getUrlStubFromFile(pageContext, images.get(0)).replace("XXX_SIZE_XXX", "400h").replace("YYY_QUALITY_YYY", "" + getQuality()) + "' alt=''/></div>");
+					pageContext.getOut().println("<div id='spacer" + slideshowCounter + "'>&nbsp;</div>");
 					pageContext.getOut().println("<script type='text/javascript'>");
 					pageContext.getOut().println("var size = getWindowSize(); var sourceList = [");				
 					for (int i = 0; i < images.size(); i++) {
 						String imagePath = images.get(i);
-						if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
-							pageContext.getOut().print("'" + Common.getUrlStubFromFile(pageContext, imagePath) + "'.replace(/XXX_SIZE_XXX/, (Math.round(Math.min(size.width, size.height) / 100) * 100) + " + getSize() + " + (size.width > size.height ? 'h' : 'w')).replace(/YYY_QUALITY_YYY/, '" + getQuality() + "')");
+						if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){                                                                        //v TODO getSize() - 1000 is a hack.
+							pageContext.getOut().print("'" + Common.getUrlStubFromFile(pageContext, imagePath) + "'.replace(/XXX_SIZE_XXX/, (Math.round(Math.min(size.width, size.height) / 100) * 100) + " + (getSize() - 1000) + " + (size.width > size.height ? 'h' : 'w')).replace(/YYY_QUALITY_YYY/, '" + getQuality() + "')");
 							if (i < (images.size() - 1))
 								pageContext.getOut().println(",");
 						}
 					}
 					pageContext.getOut().println("];");
 					pageContext.getOut().println("new Slideshow(document.getElementById('slideshow" + slideshowCounter + "'), sourceList, " + getFadeSpeed() + ", " + getPhotoSpeed() + ", " + isCenter() + ");");
+					pageContext.getOut().println("document.getElementById('spacer" + slideshowCounter + "').style.height = (size.height - 100) + 'px';");
 					pageContext.getOut().println("</script>");
 				}
 			}

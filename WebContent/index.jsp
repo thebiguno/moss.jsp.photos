@@ -9,7 +9,7 @@
 </head>
 <body>
 
-<p:slideshow packageName="/img" type="flash" size="600"/>
+<p:slideshow packageName="/img" size="600"/>
 
 
 </body>
