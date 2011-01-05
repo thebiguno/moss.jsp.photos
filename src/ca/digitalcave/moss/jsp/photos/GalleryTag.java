@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.PageContext;
@@ -25,15 +23,8 @@ public class GalleryTag implements Tag {
 	
 	private boolean random = false;
 	
-	private String flashBackgroundColor = "222222";
-	private int flashRowCount = 1;
-	private int flashColumnCount = 10;
-	private int flashWidth = 1000;
-	private int flashHeight = 800;
-	private String flashThumbPosition = "BOTTOM";
-	
-	private boolean showTitle = false;
-	private boolean includeLink = true;
+//	private boolean showTitle = false;
+//	private boolean includeLink = true;
 	private boolean showFullQualityDownload = false;
 
 	private String matchRegex = "^.*png$|^.*jpg$|^.*jpeg$|^.*bmp$|^.*png$|^.*gif$";
@@ -47,76 +38,12 @@ public class GalleryTag implements Tag {
 		this.random = random;
 	}
 	
-	public int getFlashHeight() {
-		return flashHeight;
-	}
-	
-	public void setFlashHeight(int flashHeight) {
-		this.flashHeight = flashHeight;
-	}
-	
-	public int getFlashWidth() {
-		return flashWidth;
-	}
-	
-	public void setFlashWidth(int flashWidth) {
-		this.flashWidth = flashWidth;
-	}
-	
-	public String getFlashBackgroundColor() {
-		return flashBackgroundColor;
-	}
-	
-	public void setFlashBackgroundColor(String flashBackgroundColor) {
-		this.flashBackgroundColor = flashBackgroundColor;
-	}
-	
-	public int getFlashColumnCount() {
-		return flashColumnCount;
-	}
-	
-	public void setFlashColumnCount(int flashColumnCount) {
-		this.flashColumnCount = flashColumnCount;
-	}
-	
-	public int getFlashRowCount() {
-		return flashRowCount;
-	}
-	
-	public void setFlashRowCount(int flashRowCount) {
-		this.flashRowCount = flashRowCount;
-	}
-	
-	public String getFlashThumbPosition() {
-		return flashThumbPosition;
-	}
-	
-	public void setFlashThumbPosition(String flashThumbPosition) {
-		this.flashThumbPosition = flashThumbPosition;
-	}
-	
 	public boolean isShowFullQualityDownload() {
 		return showFullQualityDownload;
 	}
 	
 	public void setShowFullQualityDownload(boolean fullQualityTitleLink) {
 		this.showFullQualityDownload = fullQualityTitleLink;
-	}
-	
-	public boolean isIncludeLink() {
-		return includeLink;
-	}
-	
-	public boolean isShowTitle() {
-		return showTitle;
-	}
-	
-	public void setIncludeLink(boolean includeLink) {
-		this.includeLink = includeLink;
-	}
-	
-	public void setShowTitle(boolean showTitle) {
-		this.showTitle = showTitle;
 	}
 
 	public String getPackageName() {
@@ -187,100 +114,33 @@ public class GalleryTag implements Tag {
 		return parent;
 	}
 
-	private static int counter = 0;
-	
 	@SuppressWarnings("unchecked")
 	public int doStartTag() throws JspException {
-		HttpServletRequest request = (HttpServletRequest) pageContext.getRequest();
-		HttpServletResponse response = (HttpServletResponse) pageContext.getResponse();
-		String type = Common.getGalleryType(request, response);
 		try {
-			if ("flash".equals(type)){
-				pageContext.getOut().println("<div class='gallery-type'><a href='" + request.getRequestURI() + "?type=html'>HTML Gallery</a></div>");
-				
-				pageContext.getOut().println("<div class='gallery'>");
+			pageContext.getOut().println("<div class='gallery'>");
 
-				final String galleryXml = "gallery.xml?packageName=" + getPackageName() + 
-					"++showTitle=" + isShowTitle() +
-					"++showFullQuality=" + isShowFullQualityDownload() +
-					"++thumbPosition=" + getFlashThumbPosition() +
-					"++rowCount=" + getFlashRowCount() +
-					"++columnCount=" + getFlashColumnCount() +
-					"++fullSize=" + getFullSize() + 
-					"++fullQuality=" + getFullQuality() +
-					"++thumbSize=" + getThumbSize() + 
-					"++thumbQuality=" + getThumbQuality() +
-					"++random=" + isRandom() +
-					"++matchRegex=" + getMatchRegex() + 
-					"++excludeRegex=" + getExcludeRegex(); 
-				
-				pageContext.getOut().println(
-						"<object width='" + getFlashWidth() + "' height='" + getFlashHeight() + "'>\n" +
-						"<param name=\"movie\" value=\"simpleviewer.swf?galleryURL=" + galleryXml + "\"></param>\n" + 
-						"<param name=\"allowFullScreen\" value=\"true\"></param>\n" +
-						"<param name=\"allowscriptaccess\" value=\"always\"></param>\n" +
-						"<param name=\"bgcolor\" value=\"" + getFlashBackgroundColor() + "\"></param>\n" +
-						"<embed " +
-						"src=\"simpleviewer.swf?galleryURL=" + galleryXml + "\"" + 
-						"type=\"application/x-shockwave-flash\" " +
-						"allowscriptaccess=\"always\" " +
-						"allowfullscreen=\"true\" " +
-						"bgcolor=\"" + getFlashBackgroundColor() + "\" " +
-						"width='" + getFlashWidth() + "' " +
-						"height='" + getFlashHeight() + "'>" + 
-						"</embed>\n" +
-						"</object>\n"
-				);
-				
-				pageContext.getOut().write("</div> <!-- gallery -->\n");
-			}			
-			else { //Fallback to HTML
-				pageContext.getOut().println("<div class='gallery-type'><a href='" + request.getRequestURI() + "?type=flash'>Flash Gallery</a></div>");				
-				
-				pageContext.getOut().println("<div class='gallery'>");
-				pageContext.getOut().println("<div class='gallery-start'></div>");
+			List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF/galleries" + getPackageName()));
+			if (isRandom())
+				Collections.shuffle(images);
+			else
+				Collections.sort(images);
 
-				List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF/galleries" + getPackageName()));
-				if (isRandom())
-					Collections.shuffle(images);
-				else
-					Collections.sort(images);
-
-
-				for (String imagePath : images) {
-					if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
-						pageContext.getOut().println("\n\n\n<div class='gallery-image'>");
-						pageContext.getOut().println("<div class='gallery-frame'>");
-						if (isIncludeLink()){
-							pageContext.getOut().println("<a id='lightbox" + counter + "' href='" + Common.getUrlFromFile(pageContext.getServletContext(), imagePath, getFullSize(), getFullQuality()) + "' rel='lightbox[" + getPackageName().replaceAll("/", "_") + "]'>");
-						}
-						pageContext.getOut().println("<img src='" + Common.getUrlFromFile(pageContext.getServletContext(), imagePath, getThumbSize(), getThumbQuality()) + "' alt=''></img>");
-						if (isIncludeLink()){
-							pageContext.getOut().println("</a>");
-						}
-						if (isShowTitle() || isShowFullQualityDownload()){
-							pageContext.getOut().print("<div class='gallery-title'>");
-							if (isShowTitle()){
-								pageContext.getOut().print(imagePath.replaceAll("^/.*/", "").replaceAll("\\.[a-zA-Z0-9]+", ""));
-							}
-							if (isShowFullQualityDownload()){
-								pageContext.getOut().print("<div class='gallery-image-download'>");
-								pageContext.getOut().print("<a href='" + Common.getFullQualityUrlFromFile(pageContext.getServletContext(), imagePath) + "'>");
-								pageContext.getOut().print("Download High Resolution Image");
-								pageContext.getOut().print("</a>");
-								pageContext.getOut().println("</div> <!--gallery-image-download-->");
-							}
-							pageContext.getOut().println("</div> <!--gallery-title-->");
-						}
-						pageContext.getOut().println("</div> <!--gallery-frame-->");
-						pageContext.getOut().println("</div> <!-- gallery-image -->");
-					}
+			for (String imagePath : images) {
+				if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
+					pageContext.getOut().println("<a href='" + Common.getUrlFromFile(pageContext.getServletContext(), imagePath, getFullSize(), getFullQuality()) + "'>");
+					pageContext.getOut().println("<img src='" + Common.getUrlFromFile(pageContext.getServletContext(), imagePath, getThumbSize(), getThumbQuality()) + "' alt=''></img>");
+					pageContext.getOut().println("</a>\n");
 				}
+			}			
+			
+			pageContext.getOut().write("</div> <!-- gallery -->\n");
 
-				pageContext.getOut().println("<div class='gallery-end'></div>");
-				pageContext.getOut().write("</div> <!-- gallery -->\n");
-			}
-
+			pageContext.getOut().write("<script>$('.gallery').galleria({"
+//					+ "'height': '100%',"
+//					+ "'width': '100%'"
+					+ "});</script>\n"
+			);
+			
 			if (isShowFullQualityDownload()){
 				pageContext.getOut().write("<p><a href='" + pageContext.getServletContext().getContextPath() + ImageFilter.GALLERIES_PATH + packageName + "/all.zip'>Download All High Resolution Images</a></p>");
 			}

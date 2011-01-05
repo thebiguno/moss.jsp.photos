@@ -9,7 +9,9 @@
 </head>
 <body>
 
-<p:slideshow packageName="/img" size="600"/>
+<div style="width: 800px; height: 600px">
+<p:gallery packageName="/img" />
+</div>
 
 
 </body>
