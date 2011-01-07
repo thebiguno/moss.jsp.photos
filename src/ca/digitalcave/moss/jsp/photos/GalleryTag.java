@@ -23,7 +23,10 @@ public class GalleryTag implements Tag {
 	
 	private boolean random = false;
 	
-//	private boolean showTitle = false;
+	//How long to wait in between slideshow slides (in millis); set to 0 for disabling slideshow mode
+	private int autoPlayDuration = 0;
+	
+	private boolean showTitle = false;
 //	private boolean includeLink = true;
 	private boolean showFullQualityDownload = false;
 
@@ -32,6 +35,13 @@ public class GalleryTag implements Tag {
 
 	public boolean isRandom() {
 		return random;
+	}
+	
+	public int getAutoPlayDuration() {
+		return autoPlayDuration;
+	}
+	public void setAutoPlayDuration(int autoPlayDuration) {
+		this.autoPlayDuration = autoPlayDuration;
 	}
 	
 	public void setRandom(boolean random) {
@@ -117,7 +127,7 @@ public class GalleryTag implements Tag {
 	@SuppressWarnings("unchecked")
 	public int doStartTag() throws JspException {
 		try {
-			pageContext.getOut().println("<div class='gallery'>");
+			pageContext.getOut().println("<div class='gallery' style='width: 100%; height: 100%'>");
 
 			List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF/galleries" + getPackageName()));
 			if (isRandom())
@@ -135,10 +145,16 @@ public class GalleryTag implements Tag {
 			
 			pageContext.getOut().write("</div> <!-- gallery -->\n");
 
-			pageContext.getOut().write("<script>$('.gallery').galleria({"
-//					+ "'height': '100%',"
-//					+ "'width': '100%'"
-					+ "});</script>\n"
+			pageContext.getOut().write("<script>$('.gallery').galleria({");
+			
+			if (autoPlayDuration > 0){
+				pageContext.getOut().write("autoplay: " + autoPlayDuration + ",");
+			}
+			else {
+				pageContext.getOut().write("autoplay: false,");
+			}
+			
+			pageContext.getOut().write("});</script>\n"
 			);
 			
 			if (isShowFullQualityDownload()){

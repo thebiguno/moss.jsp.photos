@@ -6,7 +6,7 @@
 	<short-name>p</short-name>
 	<uri>/photo-tags</uri>
 	<display-name>JSP Photo Tags</display-name>
-	<description>Easily add photo galleries and slideshows to JSP pages, using Lightbox 2 to display the gallery images, and a javascript to show the slideshow.</description>
+	<description>Easily add photo galleries / slideshows to JSP pages, using Galleria.</description>
 
 
 	<tag> 
@@ -29,30 +29,6 @@
 			<required>false</required>
 		</attribute>		
 		<attribute>
-			<name>flashBackgroundColor</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>flashRowCount</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>flashColumnCount</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>flashThumbPosition</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>flashWidth</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>flashHeight</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
 			<name>thumbSize</name>
 			<required>false</required>
 		</attribute>
@@ -73,54 +49,7 @@
 			<required>false</required>
 		</attribute>
 		<attribute>
-			<name>includeLink</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
 			<name>showFullQualityDownload</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>matchRegex</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>excludeRegex</name>
-			<required>false</required>
-		</attribute>
-	</tag>
-	
-	<tag> 
-		<name>slideshow</name> 
-		<tag-class>ca.digitalcave.moss.jsp.photos.SlideshowTag</tag-class>
-		<description>Creates a slideshow from specified image files</description>
-
-		<attribute>
-			<name>packageName</name>
-			<required>true</required>
-		</attribute>
-		<attribute>
-			<name>size</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>random</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>center</name>
-			<required>false</required>
-		</attribute>		
-		<attribute>
-			<name>quality</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>fadeSpeed</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>photoSpeed</name>
 			<required>false</required>
 		</attribute>
 		<attribute>
