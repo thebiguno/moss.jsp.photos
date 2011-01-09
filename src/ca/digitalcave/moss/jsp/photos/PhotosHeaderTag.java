@@ -27,10 +27,7 @@ public class PhotosHeaderTag implements Tag {
 		try {
 			pageContext.getOut().write("<script src='http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js'></script>\n");
 			pageContext.getOut().write("<script type='text/javascript' src='" + pageContext.getServletContext().getContextPath() + ImageFilter.JAVASCRIPT_PATH + "/galleria/galleria.js'></script>\n");
-			pageContext.getOut().write("<script type='text/javascript' src='" + pageContext.getServletContext().getContextPath() + ImageFilter.JAVASCRIPT_PATH + "/galleria/themes/classic/galleria.classic.js'></script>\n");
-
-			//TODO Remove 
-//			pageContext.getOut().write("<link rel='stylesheet' href='" + pageContext.getServletContext().getContextPath() + ImageFilter.CSS_PATH + "/lightbox.css' type='text/css' media='screen' />\n");
+			pageContext.getOut().write("<script type='text/javascript' src='" + pageContext.getServletContext().getContextPath() + ImageFilter.JAVASCRIPT_PATH + "/galleria-themes/classic-modified/galleria.classic.js'></script>\n");
 		} 
 		catch(IOException ioe) {
 			throw new JspTagException("An IOException occurred.");

@@ -7,12 +7,9 @@
 <title>Insert title here</title>
 <p:header/>
 </head>
-<body>
+<body style="width: 100%">
 
-<div style="width: 800px; height: 600px">
-<p:gallery packageName="/img" />
-</div>
-
+<p:gallery packageName="/img" fullSize="800" slideshow="true"/>
 
 </body>
 </html>

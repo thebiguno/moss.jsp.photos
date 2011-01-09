@@ -25,7 +25,23 @@
 			<required>true</required>
 		</attribute>
 		<attribute>
+			<name>slideshow</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>slideshowDelay</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>slideshowAllowOverride</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
 			<name>random</name>
+			<required>false</required>
+		</attribute>		
+		<attribute>
+			<name>center</name>
 			<required>false</required>
 		</attribute>		
 		<attribute>
