@@ -18,7 +18,7 @@ public class GalleryTag implements Tag {
 	
 	private String packageName = ".";
 	
-	private int thumbSize = 0; //If thumbSize is 0 we will use full images (scaled in galleria) for thumbs.  This allows pre-loading an entire page for quicker access.
+	private int thumbSize = 130; //If thumbSize is 0 we will use full images (scaled in galleria) for thumbs.  This allows pre-loading an entire page for quicker access; however it will slow down the initial rendering for large pages.
 	private int fullSize = 800;
 	private int thumbQuality = 75;
 	private int fullQuality = 85;
@@ -161,7 +161,7 @@ public class GalleryTag implements Tag {
 			
 			final int count = galleryNumber++;
 			
-			pageContext.getOut().println("<div id='gallery" + count + "' style='width: " + getFullSize() + "; height: " + getFullSize() + "'>");
+			pageContext.getOut().println("<div id='gallery" + count + "' style='width: " + getFullSize() + "px; height: " + getFullSize() + "px'>");
 
 			List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF/galleries" + getPackageName()));
 			
@@ -170,7 +170,9 @@ public class GalleryTag implements Tag {
 
 			for (String imagePath : images) {
 				if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
-					pageContext.getOut().println("<a href='" + Common.getUrlFromFile(pageContext.getServletContext(), imagePath, getFullSize(), getFullQuality()) + "'>");
+					if (getThumbSize() != 0){					
+						pageContext.getOut().println("<a href='" + Common.getUrlFromFile(pageContext.getServletContext(), imagePath, getFullSize(), getFullQuality()) + "'>");
+					}
 					pageContext.getOut().println("<img src='" + Common.getUrlFromFile(pageContext.getServletContext(), imagePath, (getThumbSize() == 0 ? getFullSize() : getThumbSize()), (getThumbSize() == 0 ? getFullQuality() : getThumbQuality())) + "'");
 					if (isShowTitle()){
 						pageContext.getOut().println(" alt='" + imagePath.replaceAll("^/.*/", "").replaceAll("\\.[a-zA-Z0-9]+", "") + "'");
@@ -178,8 +180,10 @@ public class GalleryTag implements Tag {
 					if (isShowFullQualityDownload()){
 						pageContext.getOut().println(" longdesc='" + Common.getFullQualityUrlFromFile(pageContext.getServletContext(), imagePath) + "'");
 					}
-					pageContext.getOut().println("></img>");
-					pageContext.getOut().println("</a>\n");
+					pageContext.getOut().println("></img>\n");
+					if (getThumbSize() != 0){
+						pageContext.getOut().println("</a>\n");
+					}
 				}
 			}			
 			
@@ -209,7 +213,7 @@ public class GalleryTag implements Tag {
 			pageContext.getOut().write("transition: 'flash', transition_speed: 1000,");
 			
 			//Common settings 
-			pageContext.getOut().write("preload: 'all', show_counter: false, min_scale_ratio: 1, max_scale_ratio: 1, width: " + getFullSize() + ", height: " + getFullSize() + " ");
+			pageContext.getOut().write("show_counter: false, min_scale_ratio: 1, max_scale_ratio: 1, width: " + getFullSize() + ", height: " + getFullSize() + " ");
 			pageContext.getOut().write("});</script>\n");
 			
 			if (isShowFullQualityDownload()){
