@@ -41,7 +41,7 @@
 			<required>false</required>
 		</attribute>		
 		<attribute>
-			<name>center</name>
+			<name>order</name>
 			<required>false</required>
 		</attribute>		
 		<attribute>
@@ -62,6 +62,18 @@
 		</attribute>
 		<attribute>
 			<name>showTitle</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>showDate</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>showCaption</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>showFilename</name>
 			<required>false</required>
 		</attribute>
 		<attribute>

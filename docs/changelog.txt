@@ -1,3 +1,9 @@
+1.4.2.0 - January 31 2011
+-Added 'showCaption', 'showDate', and 'showFilename' in addition to existing 'showTitle'.  Together these attributes let you customize the info display for a given gallery.
+
+1.4.1.0 - January 29 2011
+-Changed 'random' attribute in gallery tag to 'order'; now instead of true / false, you can have 'random', 'reverse' (sorted desc), and 'sorted' (technically anything other than 'random' or 'reverse' works as sorted).
+
 1.4.0.0 - January 8 2011
 -Combined gallery and slideshow into one tag p:gallery.
 -Both gallery and slideshow are now handled by a single JS gallery, 'galleria' (http://galleria.aino.se/)
