@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -18,8 +17,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import ca.digitalcave.moss.jsp.photos.data.ImageParams;
 import ca.digitalcave.moss.jsp.photos.exception.UnauthorizedException;
+import ca.digitalcave.moss.jsp.photos.model.ImageParams;
 
 import com.drew.imaging.jpeg.JpegMetadataReader;
 import com.drew.metadata.Directory;
@@ -126,32 +125,7 @@ public class Common {
 
 		return type;
 	}
-	
-	public static ImageMetadata getImageMetadata(InputStream image){
-		String title = null, caption = null;
-		Date captureDate = null;
-		try {			
-			Metadata metadata = JpegMetadataReader.readMetadata(image);
-			Directory iptcDirectory = metadata.getDirectory(IptcDirectory.class);
-			Directory exifDirectory = metadata.getDirectory(ExifDirectory.class);
-			
-			//OBJ_NAME is the field that Lightroom's 'Title' attribute is saved to.
-			if (iptcDirectory.containsTag(IptcDirectory.TAG_OBJECT_NAME)){
-				title = iptcDirectory.getString(IptcDirectory.TAG_OBJECT_NAME);
-			}
-			if (iptcDirectory.containsTag(IptcDirectory.TAG_CAPTION)){
-				caption = iptcDirectory.getString(IptcDirectory.TAG_CAPTION);
-			}
-			if (exifDirectory.containsTag(ExifDirectory.TAG_DATETIME_ORIGINAL)){
-				captureDate = exifDirectory.getDate(ExifDirectory.TAG_DATETIME_ORIGINAL);
-			}
-		}
-		catch (Throwable t) {}
 		
-		return new ImageMetadata(title, caption, captureDate);
-	}
-	
-	
 	public static String escapeHtml(String s){
 		if (s == null)
 			return null;
@@ -168,21 +142,18 @@ public class Common {
 		if (s == null)
 			return null;
 		return s
-		.replaceAll("'", "&apos;")
-		.replaceAll("\"", "&quot;")
 		.replaceAll("<", "&lt;")
 		.replaceAll(">", "&gt;")
-		.replaceAll("&", "&amp;")
 		.replaceAll("[\r\n]", "\n");
 	}
 	
 	
-	public static ImageParams getImageParams(String requestURI, FilterConfig config) throws UnauthorizedException {
+	public static ImageParams getImageParams(String requestURI, ServletContext servletContext) throws UnauthorizedException {
 		//Set the thread priority to be lower, so that other requests get processed in a reasonable time.
 		Thread.currentThread().setPriority(Thread.NORM_PRIORITY - 1);
 		
 		//Remove the /galleries prefix
-		String requestUriWithoutContextAndGalleriesPrefix = requestURI.replaceAll("^" + config.getServletContext().getContextPath() + Common.GALLERIES_PATH, "");
+		String requestUriWithoutContextAndGalleriesPrefix = requestURI.replaceAll("^" + servletContext.getContextPath() + Common.GALLERIES_PATH, "");
 
 		//Find path to gallery source
 		String packageName = requestUriWithoutContextAndGalleriesPrefix.replaceAll("[^/]+$", "");
@@ -218,7 +189,7 @@ public class Common {
 		}
 		
 		//Check the gallery for gallery-specific overrides on max / min size and quality.
-		InputStream settings = config.getServletContext().getResourceAsStream("/WEB-INF" + Common.GALLERIES_PATH + packageName + "/settings.xml");
+		InputStream settings = servletContext.getResourceAsStream("/WEB-INF" + Common.GALLERIES_PATH + packageName + "/settings.xml");
 		if (settings == null){
 			//You must have a settings.xml file, or you cannot access the content.
 			throw new UnauthorizedException("Settings file not found");
@@ -268,9 +239,31 @@ public class Common {
 				quality = 100;
 			if (quality < 0)
 				quality = 0;
-		}		
+		}
 		
-		return new ImageParams(packageName, baseName, extension, fullQuality, size, quality);
+		InputStream is = servletContext.getResourceAsStream(("/WEB-INF" + Common.GALLERIES_PATH + packageName + baseName + "." + extension).replaceAll("%20", " "));
+		
+		String title = null, caption = null;
+		Date captureDate = null;
+		try {			
+			Metadata metadata = JpegMetadataReader.readMetadata(is);
+			Directory iptcDirectory = metadata.getDirectory(IptcDirectory.class);
+			Directory exifDirectory = metadata.getDirectory(ExifDirectory.class);
+			
+			//OBJ_NAME is the field that Lightroom's 'Title' attribute is saved to.
+			if (iptcDirectory.containsTag(IptcDirectory.TAG_OBJECT_NAME)){
+				title = iptcDirectory.getString(IptcDirectory.TAG_OBJECT_NAME);
+			}
+			if (iptcDirectory.containsTag(IptcDirectory.TAG_CAPTION)){
+				caption = iptcDirectory.getString(IptcDirectory.TAG_CAPTION);
+			}
+			if (exifDirectory.containsTag(ExifDirectory.TAG_DATETIME_ORIGINAL)){
+				captureDate = exifDirectory.getDate(ExifDirectory.TAG_DATETIME_ORIGINAL);
+			}
+		}
+		catch (Throwable t) {} //This information is not required.		
+		
+		return new ImageParams(packageName, baseName, extension, fullQuality, size, quality, title, caption, captureDate);
 	}
 	
 	public static String getStringSettings(Document doc, String element, String attribute){

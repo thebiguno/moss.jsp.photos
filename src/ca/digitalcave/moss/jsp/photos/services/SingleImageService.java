@@ -1,7 +1,6 @@
 package ca.digitalcave.moss.jsp.photos.services;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 
 import javax.servlet.FilterConfig;
@@ -9,9 +8,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import ca.digitalcave.moss.jsp.photos.Common;
-import ca.digitalcave.moss.jsp.photos.ImageMetadata;
-import ca.digitalcave.moss.jsp.photos.data.ImageParams;
 import ca.digitalcave.moss.jsp.photos.exception.UnauthorizedException;
+import ca.digitalcave.moss.jsp.photos.model.ImageParams;
 
 public class SingleImageService {
 	/**
@@ -19,37 +17,39 @@ public class SingleImageService {
 	 * simple raw HTML page with image and metadata.
 	 */
 	public static void doServe(HttpServletRequest request, HttpServletResponse response, FilterConfig config) throws IOException {
-		response.getOutputStream().println("<html><body>");
 
 		String requestURI = request.getRequestURI();
 		try {
-			ImageParams ip = Common.getImageParams(requestURI, config);
-			InputStream is = config.getServletContext().getResourceAsStream(("/WEB-INF" + Common.GALLERIES_PATH + ip.getPackageName() + ip.getBaseName() + "." + ip.getExtension()).replaceAll("%20", " "));
-			ImageMetadata im = Common.getImageMetadata(is);
+			StringBuilder sb = new StringBuilder();
+			sb.append("<html><body>");
 			
-			if (im.getTitle() != null){
-				response.getOutputStream().println("<h1>");
-				response.getOutputStream().println(Common.escapeHtml(im.getTitle()));
-				response.getOutputStream().println("</h1>");
+			ImageParams imageParams = Common.getImageParams(requestURI, config.getServletContext());
+			
+			if (imageParams.getTitle() != null){
+				sb.append("<h1>");
+				sb.append(Common.escapeHtml(imageParams.getTitle()));
+				sb.append("</h1>");
 			}
 			
-			if (im.getCaption() != null){
-				response.getOutputStream().println("<p>");
-				response.getOutputStream().println(Common.escapeHtml(im.getCaption()));
-				response.getOutputStream().println("</p>");
+			if (imageParams.getCaption() != null){
+				sb.append("<p>");
+				sb.append(Common.escapeHtml(imageParams.getCaption()));
+				sb.append("</p>");
 			}
 			
-			response.getOutputStream().println("<img src='");
-			response.getOutputStream().println(requestURI.replaceAll("jsp$", "jpg"));
-			response.getOutputStream().println("'>");
+			sb.append("<img src='");
+			sb.append(requestURI.replaceAll("jsp$", "jpg"));
+			sb.append("'>");
 
-			if (im.getCaptureDate() != null){
-				response.getOutputStream().println("<p>");
-				response.getOutputStream().println(new SimpleDateFormat("yyyy-MM-dd").format(im.getCaptureDate()));
-				response.getOutputStream().println("</p>");
+			if (imageParams.getCaptureDate() != null){
+				sb.append("<p>");
+				sb.append(new SimpleDateFormat("yyyy-MM-dd").format(imageParams.getCaptureDate()));
+				sb.append("</p>");
 			}
 
-			response.getOutputStream().println("</body></html>");
+			sb.append("</body></html>");
+			
+			response.getOutputStream().println(sb.toString());
 		}
 		catch (UnauthorizedException e){
 			response.setStatus(HttpServletResponse.SC_FORBIDDEN);

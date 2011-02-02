@@ -11,6 +11,9 @@ import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.PageContext;
 import javax.servlet.jsp.tagext.Tag;
 
+import ca.digitalcave.moss.jsp.photos.exception.UnauthorizedException;
+import ca.digitalcave.moss.jsp.photos.model.ImageParams;
+
 public class GalleryTag implements Tag {
 	private PageContext pageContext = null;
 	private Tag parent = null;
@@ -188,6 +191,10 @@ public class GalleryTag implements Tag {
 				pageContext.getOut().println("<div style='margin-left: auto; margin-right: auto; width: " + getFullSize() + "px;'>");
 			}
 			
+			if (isShowRssLink()){
+				pageContext.getOut().println("<div style='float: right'><a href='" + pageContext.getServletContext().getContextPath() + Common.GALLERIES_PATH + packageName + "/gallery.rss'><img src='" + pageContext.getServletContext().getContextPath() + Common.IMAGE_PATH + "/rss/rss.png' alt='Subscribe to RSS Feed' border='none'></a></div><div style='clear: both'/>");
+			}
+			
 			final int count = galleryNumber++;
 			
 			pageContext.getOut().println("<div id='gallery" + count + "' style='width: " + getFullSize() + "px; height: " + getFullSize() + "px'>");
@@ -203,51 +210,51 @@ public class GalleryTag implements Tag {
 			}
 
 			for (String imagePath : images) {
-				if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
-					if (getThumbSize() != 0){					
-						pageContext.getOut().println("<a href='" + Common.getUrlFromFile(pageContext.getServletContext(), imagePath, getFullSize(), getFullQuality(), "jpg") + "'>");
-					}
-					pageContext.getOut().println("<img src='" + Common.getUrlFromFile(pageContext.getServletContext(), imagePath, (getThumbSize() == 0 ? getFullSize() : getThumbSize()), (getThumbSize() == 0 ? getFullQuality() : getThumbQuality()), "jpg") + "'");
+				try {
+					if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
+						String imageURI = Common.getUrlFromFile(pageContext.getServletContext(), imagePath, getFullSize(), getFullQuality(), "jpg");
+						if (getThumbSize() != 0){					
+							pageContext.getOut().println("<a href='" + imageURI + "'>");
+						}
 
-					ImageMetadata imageMetadata = null;					
-					if (isShowTitle() || isShowCaption()){
-						//Try to load metadata; possibly used for title / caption
-						imageMetadata = Common.getImageMetadata(pageContext.getServletContext().getResourceAsStream(imagePath.replaceAll("%20", " ")));
-					}
-					
-					StringBuilder info = new StringBuilder();
-					if (isShowTitle() && imageMetadata.getTitle() != null){
-						pageContext.getOut().println(" title='");
-						pageContext.getOut().println(Common.escapeHtml(imageMetadata.getTitle())); 
-						pageContext.getOut().println("'");
-					}
-					
-					if (isShowCaption() && imageMetadata.getCaption() != null){
-						info.append("<p>").append(Common.escapeHtml(imageMetadata.getCaption())).append("</p>");
-					}
-					
-					if (isShowDate() && imageMetadata.getCaptureDate() != null){
-						info.append("<p>").append(new SimpleDateFormat("yyyy-MM-dd").format(imageMetadata.getCaptureDate())).append("</p>");
-					}					
-					
-					if (isShowFilename()){
-						final String filename = imagePath.replaceAll("^/.*/", "");
-						info.append("<p>").append(Common.escapeHtml(filename)).append("</p>");
-					}
-					
-					if (info.length() > 0){
-						pageContext.getOut().println(" alt='");
-						pageContext.getOut().println(info); 
-						pageContext.getOut().println("'");
-					}
-					if (isShowFullQualityDownload()){
-						pageContext.getOut().println(" longdesc='" + Common.getFullQualityUrlFromFile(pageContext.getServletContext(), imagePath) + "'");
-					}
-					pageContext.getOut().println("></img>\n");
-					if (getThumbSize() != 0){
-						pageContext.getOut().println("</a>\n");
+						ImageParams imageParams = Common.getImageParams(imageURI, pageContext.getServletContext());
+
+						pageContext.getOut().println("<img src='" + Common.getUrlFromFile(pageContext.getServletContext(), imagePath, (getThumbSize() == 0 ? getFullSize() : getThumbSize()), (getThumbSize() == 0 ? getFullQuality() : getThumbQuality()), "jpg") + "'");
+						StringBuilder info = new StringBuilder();
+						if (isShowTitle() && imageParams.getTitle() != null){
+							pageContext.getOut().println(" title='");
+							pageContext.getOut().println(Common.escapeHtml(imageParams.getTitle())); 
+							pageContext.getOut().println("'");
+						}
+
+						if (isShowCaption() && imageParams.getCaption() != null){
+							info.append("<p>").append(Common.escapeHtml(imageParams.getCaption())).append("</p>");
+						}
+
+						if (isShowDate() && imageParams.getCaptureDate() != null){
+							info.append("<p>").append(new SimpleDateFormat("yyyy-MM-dd").format(imageParams.getCaptureDate())).append("</p>");
+						}					
+
+						if (isShowFilename()){
+							final String filename = imagePath.replaceAll("^/.*/", "");
+							info.append("<p>").append(Common.escapeHtml(filename)).append("</p>");
+						}
+
+						if (info.length() > 0){
+							pageContext.getOut().println(" alt='");
+							pageContext.getOut().println(info); 
+							pageContext.getOut().println("'");
+						}
+						if (isShowFullQualityDownload()){
+							pageContext.getOut().println(" longdesc='" + Common.getFullQualityUrlFromFile(pageContext.getServletContext(), imagePath) + "'");
+						}
+						pageContext.getOut().println("></img>\n");
+						if (getThumbSize() != 0){
+							pageContext.getOut().println("</a>\n");
+						}
 					}
 				}
+				catch (UnauthorizedException e){}
 			}			
 			
 			pageContext.getOut().write("</div> <!-- gallery -->\n");
@@ -281,9 +288,6 @@ public class GalleryTag implements Tag {
 			
 			if (isShowFullQualityDownload()){
 				pageContext.getOut().write("<p><a href='" + pageContext.getServletContext().getContextPath() + Common.GALLERIES_PATH + packageName + "/all.zip'>Download All High Resolution Images</a></p>");
-			}
-			if (isShowRssLink()){
-				pageContext.getOut().write("<p><a href='" + pageContext.getServletContext().getContextPath() + Common.GALLERIES_PATH + packageName + "/gallery.rss'><img src='" + pageContext.getServletContext().getContextPath() + Common.IMAGE_PATH + "/rss/rss.png' alt='Subscribe to RSS Feed'/></a></p>");
 			}
 		} 
 		catch(IOException ioe) {

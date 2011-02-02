@@ -2,9 +2,8 @@ package ca.digitalcave.moss.jsp.photos.services;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,12 +17,21 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 
 import ca.digitalcave.moss.jsp.photos.Common;
-import ca.digitalcave.moss.jsp.photos.ImageMetadata;
+import ca.digitalcave.moss.jsp.photos.exception.UnauthorizedException;
+import ca.digitalcave.moss.jsp.photos.model.ImageParams;
+
+import com.sun.syndication.feed.synd.SyndContent;
+import com.sun.syndication.feed.synd.SyndContentImpl;
+import com.sun.syndication.feed.synd.SyndEntry;
+import com.sun.syndication.feed.synd.SyndEntryImpl;
+import com.sun.syndication.feed.synd.SyndFeed;
+import com.sun.syndication.feed.synd.SyndFeedImpl;
+import com.sun.syndication.io.FeedException;
+import com.sun.syndication.io.SyndFeedOutput;
 
 public class RssService {
 
-	private final static String dateFormatString = "EEE, dd MMM yyyy HH:mm:ss z";
-	
+	@SuppressWarnings("unchecked")
 	public static void doServe(HttpServletRequest request, HttpServletResponse response, FilterConfig config) throws IOException {
 		Logger logger = Logger.getLogger(RssService.class.getName());
 		
@@ -35,8 +43,11 @@ public class RssService {
 		//Find path to gallery source
 		String packageName = requestUriWithoutContextAndGalleriesPrefix.replaceAll("[^/]+$", "");
 
+		SyndFeed feed = new SyndFeedImpl();
+		feed.setFeedType("rss_2.0");
+		feed.setEntries(new ArrayList<Object>());
+
 		Integer rssSize = null, rssQuality = null;
-		String rssLink = null, rssTitle = null;
 		
 		//Check the gallery for gallery-specific settings.  If there is no settings file, return 403
 		InputStream settings = config.getServletContext().getResourceAsStream("/WEB-INF" + Common.GALLERIES_PATH + packageName + "/settings.xml");
@@ -57,8 +68,15 @@ public class RssService {
 				Integer qualityMin = Common.getIntegerSettings(doc, "quality", "min");
 				rssSize = Common.getIntegerSettings(doc, "rss", "size");
 				rssQuality = Common.getIntegerSettings(doc, "rss", "quality");
-				rssLink = Common.getStringSettings(doc, "rss", "link");
-				rssTitle = Common.getStringSettings(doc, "rss", "title");
+
+				
+				final String rssLink = Common.getStringSettings(doc, "rss", "link");
+				final String rssTitle = Common.getStringSettings(doc, "rss", "title");
+				final String rssDescription = Common.getStringSettings(doc, "rss", "description");
+				
+				feed.setTitle(rssTitle != null ? rssTitle : "Untitled RSS Feed");
+				feed.setLink(rssLink != null ? rssLink : "http://example.com");
+				feed.setDescription(rssDescription != null ? rssDescription : "");
 
 				if (rssSize == null || rssQuality == null){
 					throw new Exception("No RSS size / quality settings found");
@@ -81,61 +99,41 @@ public class RssService {
 		}
 		
 		//Get a list of files from the context path
-		@SuppressWarnings("unchecked")
 		List<String> images = new ArrayList<String>(request.getSession().getServletContext().getResourcePaths("/WEB-INF/galleries" + packageName));
 
-		Date lastBuildDate = new Date(0);
-		String language = "en-us";
-		StringBuilder sb = new StringBuilder();
-		
-		final String baseUrl = request.getRequestURL().toString().replaceAll("(http://[a-zA-Z0-9]+[:0-9]*).*", "$1");
-		
-		for (String image : images) {
-			if (image.toLowerCase().matches("^.*png$|^.*jpg$|^.*jpeg$|^.*bmp$|^.*png$|^.*gif$")){
-				InputStream is = config.getServletContext().getResourceAsStream(image);
-				ImageMetadata im = Common.getImageMetadata(is);
+		final String baseUrl = request.getRequestURL().toString().replaceAll("(http://[a-zA-Z0-9\\.]+[:0-9]*).*", "$1");
 				
-				//Since RSS items are date-sensitive, we can only show items that have a date.
-				if (im.getCaptureDate() != null){
-					if (im.getCaptureDate().after(lastBuildDate)) lastBuildDate = im.getCaptureDate();
-					
-					sb.append("<item>");
-					sb.append("<title>");
-					if (im.getTitle() != null) sb.append(Common.escapeXml(im.getTitle()));
-					else sb.append("Untitled Image");
-					sb.append("</title>");
-					
-					sb.append("<link>").append(baseUrl).append(Common.getUrlFromFile(config.getServletContext(), image, rssSize, rssQuality, "jsp")).append("</link>");
-					sb.append("<guid>").append(baseUrl).append(Common.getUrlFromFile(config.getServletContext(), image, rssSize, rssQuality, "jsp")).append("</guid>");
-					sb.append("<pubDate>").append(new SimpleDateFormat(dateFormatString).format(im.getCaptureDate())).append("</pubDate>");
-					sb.append("<description>");
-					if (im.getCaption() != null) sb.append(Common.escapeXml(im.getCaption()));
-					else sb.append("Uncaptioned Image");
-					sb.append("</description>");
-					sb.append("</item>\n");
+		for (String imagePath : images) {
+			try {
+				if (imagePath.toLowerCase().matches("^.*png$|^.*jpg$|^.*jpeg$|^.*bmp$|^.*png$|^.*gif$")){
+					String imageURI = Common.getUrlFromFile(config.getServletContext(), imagePath, rssSize, rssQuality, "jpg");
+					ImageParams imageParams = Common.getImageParams(imageURI, config.getServletContext());
+
+					//Since RSS items are date-sensitive, we can only show items that have a date.
+					if (imageParams.getCaptureDate() != null){
+						SyndEntry entry = new SyndEntryImpl();
+						entry.setTitle(imageParams.getTitle() != null ? imageParams.getTitle() : "Untitled Image");
+						entry.setLink(baseUrl + Common.getUrlFromFile(config.getServletContext(), imagePath, rssSize, rssQuality, "jsp"));
+						entry.setPublishedDate(imageParams.getCaptureDate());
+						SyndContent content = new SyndContentImpl();
+						content.setType("text/html");
+						content.setValue((imageParams.getCaption() != null ? imageParams.getCaption() : "Uncaptioned Image") 
+								+ "<br/><img src='" + baseUrl + Common.getUrlFromFile(config.getServletContext(), imagePath, rssSize, rssQuality, "jpg") + "'>");
+						entry.setDescription(content);
+
+						feed.getEntries().add(entry);
+					}
 				}
 			}
+			catch (UnauthorizedException e){}
 		}
 		
-		
-		//Write the RSS headers out
-		response.getOutputStream().println("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-		response.getOutputStream().println("<rss version=\"2.0\" xmlns:atom=\"http://www.w3.org/2005/Atom\">");
-		response.getOutputStream().println("<channel>");
-		response.getOutputStream().println("<atom:link href=\"" + request.getRequestURL() + "\" rel=\"self\" type=\"application/rss+xml\" />");
-		
-		response.getOutputStream().println("<title>" + (rssTitle != null ? rssTitle : "Untitled RSS Feed") + "</title>");
-		response.getOutputStream().println("<link>" + rssLink + "</link>");
-		response.getOutputStream().println("<description>" + packageName + "</description>");
-		response.getOutputStream().println("<lastBuildDate>" + new SimpleDateFormat(dateFormatString).format(lastBuildDate) + "</lastBuildDate>");
-		response.getOutputStream().println("<language>" + language + "</language>");
-
-		
-		//Write the RSS content out
-		response.getOutputStream().println(sb.toString());
-		
-		//Write RSS footers
-		response.getOutputStream().println("</channel>");
-		response.getOutputStream().println("</rss>");
+		SyndFeedOutput output = new SyndFeedOutput();
+		try {
+			output.output(feed, new OutputStreamWriter(response.getOutputStream()));
+		}
+		catch (FeedException e){
+			throw new IOException(e);
+		}
 	}
 }

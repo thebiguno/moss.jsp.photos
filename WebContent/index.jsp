@@ -7,7 +7,7 @@
 <title>Insert title here</title>
 <p:header/>
 </head>
-<body style="width: 100%">
+<body style="width: 100%; background-color: #000;">
 
 <p:gallery packageName="/img" fullSize="800" showTitle="true" showCaption="true" showDate="true" showRssLink="true"/>
 
