@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <settings>
-	<size max="1000" min='1'/>
-	<quality max='100' min='5'/>
+	<size max="1000" min='1' rss='600'/>
+	<quality max='100' min='5' rss='75'/>
+	<rss size="600" quality="75" link="http://photos.digitalcave.ca" title="My RSS Feed" />
 	<full-quality allowed="true"/>
 </settings>

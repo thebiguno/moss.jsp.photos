@@ -35,6 +35,8 @@ public class GalleryTag implements Tag {
 	private boolean showDate = false;
 	private boolean showCaption = false;
 	private boolean showFilename = false;
+
+	private boolean showRssLink = false;
 	private boolean showFullQualityDownload = false;
 
 	private String matchRegex = "^.*png$|^.*jpg$|^.*jpeg$|^.*bmp$|^.*png$|^.*gif$";
@@ -101,9 +103,14 @@ public class GalleryTag implements Tag {
 	public boolean isShowFullQualityDownload() {
 		return showFullQualityDownload;
 	}
-	
 	public void setShowFullQualityDownload(boolean fullQualityTitleLink) {
 		this.showFullQualityDownload = fullQualityTitleLink;
+	}
+	public boolean isShowRssLink() {
+		return showRssLink;
+	}
+	public void setShowRssLink(boolean showRssLink) {
+		this.showRssLink = showRssLink;
 	}
 
 	public String getPackageName() {
@@ -185,7 +192,7 @@ public class GalleryTag implements Tag {
 			
 			pageContext.getOut().println("<div id='gallery" + count + "' style='width: " + getFullSize() + "px; height: " + getFullSize() + "px'>");
 
-			List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF" + ImageFilter.GALLERIES_PATH + getPackageName()));
+			List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF" + Common.GALLERIES_PATH + getPackageName()));
 			
 			if ("random".equals(getOrder().toLowerCase())) Collections.shuffle(images);
 			else {
@@ -198,9 +205,9 @@ public class GalleryTag implements Tag {
 			for (String imagePath : images) {
 				if (imagePath.toLowerCase().matches(getMatchRegex()) && !imagePath.toLowerCase().matches(getExcludeRegex())){
 					if (getThumbSize() != 0){					
-						pageContext.getOut().println("<a href='" + Common.getUrlFromFile(pageContext.getServletContext(), imagePath, getFullSize(), getFullQuality()) + "'>");
+						pageContext.getOut().println("<a href='" + Common.getUrlFromFile(pageContext.getServletContext(), imagePath, getFullSize(), getFullQuality(), "jpg") + "'>");
 					}
-					pageContext.getOut().println("<img src='" + Common.getUrlFromFile(pageContext.getServletContext(), imagePath, (getThumbSize() == 0 ? getFullSize() : getThumbSize()), (getThumbSize() == 0 ? getFullQuality() : getThumbQuality())) + "'");
+					pageContext.getOut().println("<img src='" + Common.getUrlFromFile(pageContext.getServletContext(), imagePath, (getThumbSize() == 0 ? getFullSize() : getThumbSize()), (getThumbSize() == 0 ? getFullQuality() : getThumbQuality()), "jpg") + "'");
 
 					ImageMetadata imageMetadata = null;					
 					if (isShowTitle() || isShowCaption()){
@@ -273,7 +280,10 @@ public class GalleryTag implements Tag {
 			pageContext.getOut().write("});</script>\n");
 			
 			if (isShowFullQualityDownload()){
-				pageContext.getOut().write("<p><a href='" + pageContext.getServletContext().getContextPath() + ImageFilter.GALLERIES_PATH + packageName + "/all.zip'>Download All High Resolution Images</a></p>");
+				pageContext.getOut().write("<p><a href='" + pageContext.getServletContext().getContextPath() + Common.GALLERIES_PATH + packageName + "/all.zip'>Download All High Resolution Images</a></p>");
+			}
+			if (isShowRssLink()){
+				pageContext.getOut().write("<p><a href='" + pageContext.getServletContext().getContextPath() + Common.GALLERIES_PATH + packageName + "/gallery.rss'><img src='" + pageContext.getServletContext().getContextPath() + Common.IMAGE_PATH + "/rss/rss.png' alt='Subscribe to RSS Feed'/></a></p>");
 			}
 		} 
 		catch(IOException ioe) {

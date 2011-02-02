@@ -81,6 +81,10 @@
 			<required>false</required>
 		</attribute>
 		<attribute>
+			<name>showRssLink</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
 			<name>matchRegex</name>
 			<required>false</required>
 		</attribute>

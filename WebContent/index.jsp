@@ -9,7 +9,7 @@
 </head>
 <body style="width: 100%">
 
-<p:gallery packageName="/img" fullSize="800" showTitle="true" showCaption="true" showDate="true"/>
+<p:gallery packageName="/img" fullSize="800" showTitle="true" showCaption="true" showDate="true" showRssLink="true"/>
 
 </body>
 </html>
