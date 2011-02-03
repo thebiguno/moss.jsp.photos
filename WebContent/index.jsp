@@ -5,7 +5,8 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Insert title here</title>
-<p:header/>
+
+<p:header rssPackages="/img"/>
 </head>
 <body style="width: 100%; background-color: #000;">
 

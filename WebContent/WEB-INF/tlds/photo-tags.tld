@@ -12,7 +12,11 @@
 	<tag> 
 		<name>header</name> 
 		<tag-class>ca.digitalcave.moss.jsp.photos.PhotosHeaderTag</tag-class>
-		<description>Include files - must be placed in HTML Header for the photo tags to work</description> 
+		<description>Include files - must be placed in HTML Header for the photo tags to work.  You also can include RSS links to gallery packages; use either rssPackages attribute or JSP param 'rssPackages' to provide a comma separated list of package names (remember leading slash).</description> 
+		<attribute>
+			<name>rssPackages</name>
+			<required>false</required>
+		</attribute>
 	</tag>
 	
 	<tag> 
