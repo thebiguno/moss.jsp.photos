@@ -23,7 +23,7 @@ public class SingleImageService {
 			StringBuilder sb = new StringBuilder();
 			sb.append("<html><body>");
 			
-			ImageParams imageParams = Common.getImageParams(requestURI, config.getServletContext());
+			ImageParams imageParams = Common.getImageParams(null, requestURI, config.getServletContext());
 			
 			if (imageParams.getTitle() != null){
 				sb.append("<h1>");

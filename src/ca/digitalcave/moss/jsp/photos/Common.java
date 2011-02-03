@@ -148,7 +148,7 @@ public class Common {
 	}
 	
 	
-	public static ImageParams getImageParams(String requestURI, ServletContext servletContext) throws UnauthorizedException {
+	public static ImageParams getImageParams(String imagePath, String requestURI, ServletContext servletContext) throws UnauthorizedException {
 		//Set the thread priority to be lower, so that other requests get processed in a reasonable time.
 		Thread.currentThread().setPriority(Thread.NORM_PRIORITY - 1);
 		
@@ -263,7 +263,7 @@ public class Common {
 		}
 		catch (Throwable t) {} //This information is not required.		
 		
-		return new ImageParams(packageName, baseName, extension, fullQuality, size, quality, title, caption, captureDate);
+		return new ImageParams(imagePath, packageName, baseName, extension, fullQuality, size, quality, title, caption, captureDate);
 	}
 	
 	public static String getStringSettings(Document doc, String element, String attribute){

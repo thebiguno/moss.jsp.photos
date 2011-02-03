@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -100,32 +101,37 @@ public class RssService {
 		
 		//Get a list of files from the context path
 		List<String> images = new ArrayList<String>(request.getSession().getServletContext().getResourcePaths("/WEB-INF/galleries" + packageName));
-
-		final String baseUrl = request.getRequestURL().toString().replaceAll("(http://[a-zA-Z0-9\\.]+[:0-9]*).*", "$1");
-				
+		List<ImageParams> imageParams = new ArrayList<ImageParams>();
 		for (String imagePath : images) {
-			try {
-				if (imagePath.toLowerCase().matches("^.*png$|^.*jpg$|^.*jpeg$|^.*bmp$|^.*png$|^.*gif$")){
-					String imageURI = Common.getUrlFromFile(config.getServletContext(), imagePath, rssSize, rssQuality, "jpg");
-					ImageParams imageParams = Common.getImageParams(imageURI, config.getServletContext());
-
-					//Since RSS items are date-sensitive, we can only show items that have a date.
-					if (imageParams.getCaptureDate() != null){
-						SyndEntry entry = new SyndEntryImpl();
-						entry.setTitle(imageParams.getTitle() != null ? imageParams.getTitle() : "Untitled Image");
-						entry.setLink(baseUrl + Common.getUrlFromFile(config.getServletContext(), imagePath, rssSize, rssQuality, "jsp"));
-						entry.setPublishedDate(imageParams.getCaptureDate());
-						SyndContent content = new SyndContentImpl();
-						content.setType("text/html");
-						content.setValue((imageParams.getCaption() != null ? imageParams.getCaption() : "Uncaptioned Image") 
-								+ "<br/><img src='" + baseUrl + Common.getUrlFromFile(config.getServletContext(), imagePath, rssSize, rssQuality, "jpg") + "'>");
-						entry.setDescription(content);
-
-						feed.getEntries().add(entry);
-					}
+			if (imagePath.toLowerCase().matches("^.*png$|^.*jpg$|^.*jpeg$|^.*bmp$|^.*png$|^.*gif$")){
+				String imageURI = Common.getUrlFromFile(config.getServletContext(), imagePath, rssSize, rssQuality, "jpg");
+				try {
+					ImageParams ip = Common.getImageParams(imagePath, imageURI, config.getServletContext());
+					imageParams.add(ip);
 				}
+				catch (UnauthorizedException e){}
 			}
-			catch (UnauthorizedException e){}
+		}
+		
+		final String baseUrl = request.getRequestURL().toString().replaceAll("(http://[a-zA-Z0-9\\.]+[:0-9]*).*", "$1");
+		Collections.sort(imageParams);
+		Collections.reverse(imageParams);
+		
+		for (ImageParams ip : imageParams) {
+			//Since RSS items are date-sensitive, we can only show items that have a date.
+			if (ip.getCaptureDate() != null){
+				SyndEntry entry = new SyndEntryImpl();
+				entry.setTitle(ip.getTitle() != null ? ip.getTitle() : "Untitled Image");
+				entry.setLink(baseUrl + Common.getUrlFromFile(config.getServletContext(), ip.getImagePath(), rssSize, rssQuality, "jsp"));
+				entry.setPublishedDate(ip.getCaptureDate());
+				SyndContent content = new SyndContentImpl();
+				content.setType("text/html");
+				content.setValue((ip.getCaption() != null ? ip.getCaption() : "Uncaptioned Image") 
+						+ "<br/><img src='" + baseUrl + Common.getUrlFromFile(config.getServletContext(), ip.getImagePath(), rssSize, rssQuality, "jpg") + "'>");
+				entry.setDescription(content);
+
+				feed.getEntries().add(entry);
+			}
 		}
 		
 		SyndFeedOutput output = new SyndFeedOutput();
