@@ -197,7 +197,7 @@ public class GalleryTag implements Tag {
 			
 			final int count = galleryNumber++;
 			
-			pageContext.getOut().println("<div id='gallery" + count + "' style='width: " + getFullSize() + "px; height: " + getFullSize() + "px'>");
+			pageContext.getOut().println("<div id='gallery" + count + "' style='width: " + (int) (getFullSize() * 1.1) + "px; height: " + (int) (getFullSize() * 1.1) + "px'>");
 
 			List<String> images = new ArrayList<String>(pageContext.getServletContext().getResourcePaths("/WEB-INF" + Common.GALLERIES_PATH + getPackageName()));
 			
@@ -278,6 +278,7 @@ public class GalleryTag implements Tag {
 
 			//Thumbnail options
 			pageContext.getOut().write("thumb_crop: false,");
+			pageContext.getOut().write("image_crop: 'width',");
 			
 			//Transition options
 			pageContext.getOut().write("transition: 'flash', transition_speed: 1000,");
