@@ -217,7 +217,7 @@ public class GalleryTag implements Tag {
 							pageContext.getOut().println("<a href='" + imageURI + "'>");
 						}
 
-						ImageParams imageParams = Common.getImageParams(imageURI, pageContext.getServletContext());
+						ImageParams imageParams = Common.getImageParams(imagePath, imageURI, pageContext.getServletContext());
 
 						pageContext.getOut().println("<img src='" + Common.getUrlFromFile(pageContext.getServletContext(), imagePath, (getThumbSize() == 0 ? getFullSize() : getThumbSize()), (getThumbSize() == 0 ? getFullQuality() : getThumbQuality()), "jpg") + "'");
 						StringBuilder info = new StringBuilder();

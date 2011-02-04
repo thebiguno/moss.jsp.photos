@@ -52,7 +52,7 @@ public class ImageService {
 		String requestURI = request.getRequestURI();
 
 		try {
-			ImageParams ip = Common.getImageParams(requestURI, config.getServletContext());
+			ImageParams ip = Common.getImageParams(null, requestURI, config.getServletContext());
 
 			//We load source images from the context path
 			InputStream is = config.getServletContext().getResourceAsStream(("/WEB-INF" + Common.GALLERIES_PATH + ip.getPackageName() + ip.getBaseName() + "." + ip.getExtension()).replaceAll("%20", " "));

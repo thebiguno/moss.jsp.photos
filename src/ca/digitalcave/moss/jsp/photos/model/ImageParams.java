@@ -2,7 +2,8 @@ package ca.digitalcave.moss.jsp.photos.model;
 
 import java.util.Date;
 
-public class ImageParams {
+public class ImageParams implements Comparable<ImageParams> {
+	private final String imagePath;
 	private final String packageName;
 	private final String baseName;
 	private final String extension;
@@ -13,8 +14,9 @@ public class ImageParams {
 	private final String caption;
 	private final Date captureDate;
 	
-	public ImageParams(String packageName, String baseName, String extension, boolean fullQuality, int size, int quality, String title, String caption, Date captureDate) {
+	public ImageParams(String imagePath, String packageName, String baseName, String extension, boolean fullQuality, int size, int quality, String title, String caption, Date captureDate) {
 		super();
+		this.imagePath = imagePath;
 		this.packageName = packageName;
 		this.baseName = baseName;
 		this.extension = extension;
@@ -24,6 +26,9 @@ public class ImageParams {
 		this.title = title;
 		this.caption = caption;
 		this.captureDate = captureDate;
+	}
+	public String getImagePath() {
+		return imagePath;
 	}
 	public String getPackageName() {
 		return packageName;
@@ -51,5 +56,14 @@ public class ImageParams {
 	}
 	public Date getCaptureDate() {
 		return captureDate;
+	}
+	
+	@Override
+	public int compareTo(ImageParams o) {
+		if (getCaptureDate() != null && o.getCaptureDate() != null)
+			return getCaptureDate().compareTo(o.getCaptureDate());
+		if (getImagePath() != null && o.getImagePath() != null)
+			return getImagePath().compareTo(o.getImagePath());
+		return 0;
 	}
 }
