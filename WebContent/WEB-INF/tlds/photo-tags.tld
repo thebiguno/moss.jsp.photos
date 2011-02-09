@@ -11,90 +11,18 @@
 
 	<tag> 
 		<name>header</name> 
-		<tag-class>ca.digitalcave.moss.jsp.photos.PhotosHeaderTag</tag-class>
-		<description>Include files - must be placed in HTML Header for the photo tags to work.  You also can include RSS links to gallery packages; use either rssPackages attribute or JSP param 'rssPackages' to provide a comma separated list of package names (remember leading slash).</description> 
-		<attribute>
-			<name>rssPackages</name>
-			<required>false</required>
-		</attribute>
+		<tag-class>ca.digitalcave.moss.jsp.photos.tags.PhotoHeaders</tag-class>
+		<description>Include files - must be placed in HTML Header for the photo tags to work.</description> 
 	</tag>
 	
 	<tag> 
 		<name>gallery</name> 
-		<tag-class>ca.digitalcave.moss.jsp.photos.GalleryTag</tag-class>
+		<tag-class>ca.digitalcave.moss.jsp.photos.tags.Gallery</tag-class>
 		<description>Creates a gallery from specified image files</description>
 
 		<attribute>
-			<name>packageName</name>
+			<name>galleryName</name>
 			<required>true</required>
-		</attribute>
-		<attribute>
-			<name>slideshow</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>slideshowDelay</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>slideshowAllowOverride</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>random</name>
-			<required>false</required>
-		</attribute>		
-		<attribute>
-			<name>order</name>
-			<required>false</required>
-		</attribute>		
-		<attribute>
-			<name>thumbSize</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>fullSize</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>thumbQuality</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>fullQuality</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>showTitle</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>showDate</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>showCaption</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>showFilename</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>showFullQualityDownload</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>showRssLink</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>matchRegex</name>
-			<required>false</required>
-		</attribute>
-		<attribute>
-			<name>excludeRegex</name>
-			<required>false</required>
 		</attribute>
 	</tag>
 

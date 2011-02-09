@@ -13,6 +13,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -20,12 +26,12 @@ import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
 import javax.imageio.stream.MemoryCacheImageOutputStream;
-import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import ca.digitalcave.moss.common.StreamUtil;
-import ca.digitalcave.moss.jsp.photos.Common;
+import ca.digitalcave.moss.jsp.photos.ImageFilter;
 import ca.digitalcave.moss.jsp.photos.exception.UnauthorizedException;
 import ca.digitalcave.moss.jsp.photos.model.ImageParams;
 
@@ -36,7 +42,9 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifDirectory;
 
-public class ImageService {
+public class ImageService implements GalleryService {
+
+	private final static ExecutorService executor = new ThreadPoolExecutor(2, 5, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
 	/**
 	 * Given a request URI, returns the image associated with the request.
@@ -48,14 +56,18 @@ public class ImageService {
 	 * is the quality of the scaled version (100 is full quality (largest size),
 	 * 0 is lowest quality (smallest image). 
 	 */
-	public static void doServe(HttpServletRequest request, HttpServletResponse response, FilterConfig config) throws IOException{
-		String requestURI = request.getRequestURI();
+	public void doServe(HttpServletRequest request, HttpServletResponse response) throws IOException{
+		final ServletContext servletContext = (ServletContext) request.getAttribute(ImageFilter.ATTR_SERVLET_CONTEXT);
 
+		if (servletContext == null) {
+			throw new IOException("Required values not in request attribtues");
+		}		
+		
 		try {
-			ImageParams ip = Common.getImageParams(null, requestURI, config.getServletContext());
+			ImageParams ip = ImageFilter.getImageParams(null, request.getRequestURI(), servletContext);
 
 			//We load source images from the context path
-			InputStream is = config.getServletContext().getResourceAsStream(("/WEB-INF" + Common.GALLERIES_PATH + ip.getPackageName() + ip.getBaseName() + "." + ip.getExtension()).replaceAll("%20", " "));
+			InputStream is = servletContext.getResourceAsStream(("/WEB-INF" + ImageFilter.GALLERIES_PATH + ip.getGalleryName() + ip.getBaseName() + "." + ip.getExtension()).replaceAll("%20", " "));
 
 			if (is == null){
 				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -70,13 +82,42 @@ public class ImageService {
 				StreamUtil.copyStream(is, baos);
 				byte[] convertedImage = null;
 
-				convertedImage = convertImage(baos.toByteArray(), ip.getSize(), "jpg", ip.getQuality());
+				try {
+					ImageConverterCallable callable = new ImageConverterCallable(baos.toByteArray(), ip.getSize(), ip.getQuality());
+					Future<byte[]> future = executor.submit(callable);
+					convertedImage = future.get();
+				}
+				catch (Exception e){}
+				
 				if (convertedImage != null)
 					StreamUtil.copyStream(new ByteArrayInputStream(convertedImage), response.getOutputStream());
 			}
 		}
 		catch (UnauthorizedException e){
 			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+		}
+	}
+	
+	/**
+	 * Helper class, to spread out image requests to not be executed all concurrently.  Used with
+	 * the executor service.
+	 *  
+	 * @author wyatt
+	 */
+	private class ImageConverterCallable implements Callable<byte[]> {
+		private final byte[] data;
+		private final int size;
+		private final int quality;
+		
+		public ImageConverterCallable(byte[] data, int size, int quality) {
+			this.data = data;
+			this.size = size;
+			this.quality = quality;
+		}
+		
+		@Override
+		public byte[] call() throws Exception {
+			return convertImage(data, size, "jpg", quality);
 		}
 	}
 
@@ -88,7 +129,7 @@ public class ImageService {
 	 * @param quality
 	 * @return
 	 */
-	private static byte[] convertImage(byte[] originalImage, int size, String sizeType, int quality){
+	private byte[] convertImage(byte[] originalImage, int size, String sizeType, int quality){
 		try {
 			BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(originalImage));
 			bis.mark(bis.available() + 1);
@@ -191,7 +232,7 @@ public class ImageService {
 		}
 	}
 
-	private static BufferedImage getBufferedImage(Image img){
+	private BufferedImage getBufferedImage(Image img){
 		BufferedImage bi = new BufferedImage(img.getWidth(null),img.getHeight(null),BufferedImage.TYPE_INT_RGB);
 		Graphics bg = bi.getGraphics();
 		bg.drawImage(img, 0, 0, null);
@@ -206,7 +247,7 @@ public class ImageService {
 	 * the size type is 'h', 'w', or null, we will either set the scale
 	 * based off of height, width, or a calculation of the hypotenuse.
 	 */
-	private static Dimension getScaledDimension(int size, int w, int h, String sizeType){
+	private Dimension getScaledDimension(int size, int w, int h, String sizeType){
 		Dimension d;
 		if ("w".equals(sizeType)){
 			d = new Dimension(size, (int) ((double) h / w * size));

@@ -6,11 +6,14 @@
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Insert title here</title>
 
-<p:header/>
 </head>
-<body style="width: 100%; background-color: #000;">
+<body style="width: 100%; color: #fff; background-color: #000;">
 
-<p:gallery galleryName="/img"/>
+<h1><%= request.getAttribute("title") %></h1>
+<p><%= request.getAttribute("caption") %></p>
 
+<p><img src="<%= request.getAttribute("imageSource") %>" alt=""/></p>
+
+<p><%= request.getAttribute("date") %></p>
 </body>
 </html>

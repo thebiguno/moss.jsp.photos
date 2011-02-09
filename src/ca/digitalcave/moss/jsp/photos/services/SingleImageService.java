@@ -3,56 +3,55 @@ package ca.digitalcave.moss.jsp.photos.services;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 
-import javax.servlet.FilterConfig;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import ca.digitalcave.moss.jsp.photos.Common;
+import ca.digitalcave.moss.jsp.photos.ImageFilter;
 import ca.digitalcave.moss.jsp.photos.exception.UnauthorizedException;
+import ca.digitalcave.moss.jsp.photos.model.GalleryConfig;
 import ca.digitalcave.moss.jsp.photos.model.ImageParams;
 
-public class SingleImageService {
+public class SingleImageService implements GalleryService {
 	/**
-	 * Serves a single image.  This is mostly used as the target of RSS links.  Not formatting, etc, just a 
-	 * simple raw HTML page with image and metadata.
+	 * Serves a single image.  This is mostly used as the target of RSS links.  It uses the template specified
+	 * in the settings.xml file under the 'singleImage' element, 'template' attribute.  This template can use the
+	 * request attributes title, caption, imageSource, and date.
 	 */
-	public static void doServe(HttpServletRequest request, HttpServletResponse response, FilterConfig config) throws IOException {
+	public void doServe(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-		String requestURI = request.getRequestURI();
+		final ServletContext servletContext = (ServletContext) request.getAttribute(ImageFilter.ATTR_SERVLET_CONTEXT);
+		final GalleryConfig galleryConfig = (GalleryConfig) request.getAttribute(ImageFilter.ATTR_GALLERY_CONFIG);
+		
+		if (servletContext == null || galleryConfig == null) {
+			throw new IOException("Required values not in request attribtues");
+		}
+		
+		
+		final String requestURI = request.getRequestURI();
 		try {
-			StringBuilder sb = new StringBuilder();
-			sb.append("<html><body>");
+			ImageParams imageParams = ImageFilter.getImageParams(null, requestURI, servletContext);
 			
-			ImageParams imageParams = Common.getImageParams(null, requestURI, config.getServletContext());
+			final String title = ImageFilter.escapeHtml(imageParams.getTitle());
+			final String caption = ImageFilter.escapeHtml(imageParams.getCaption());
+			final String imageSource = requestURI.replaceAll("html$", "jpg");
+			final String date = new SimpleDateFormat("yyyy-MM-dd").format(imageParams.getCaptureDate());
 			
-			if (imageParams.getTitle() != null){
-				sb.append("<h1>");
-				sb.append(Common.escapeHtml(imageParams.getTitle()));
-				sb.append("</h1>");
-			}
+			RequestDispatcher rd = servletContext.getRequestDispatcher(galleryConfig.getSingleImageTemplate());
+			request.setAttribute("title", title);
+			request.setAttribute("caption", caption);
+			request.setAttribute("imageSource", imageSource);
+			request.setAttribute("date", date);
 			
-			if (imageParams.getCaption() != null){
-				sb.append("<p>");
-				sb.append(Common.escapeHtml(imageParams.getCaption()));
-				sb.append("</p>");
-			}
-			
-			sb.append("<img src='");
-			sb.append(requestURI.replaceAll("jsp$", "jpg"));
-			sb.append("'>");
-
-			if (imageParams.getCaptureDate() != null){
-				sb.append("<p>");
-				sb.append(new SimpleDateFormat("yyyy-MM-dd").format(imageParams.getCaptureDate()));
-				sb.append("</p>");
-			}
-
-			sb.append("</body></html>");
-			
-			response.getOutputStream().println(sb.toString());
+			rd.include(request, response);
 		}
 		catch (UnauthorizedException e){
 			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+		}
+		catch (ServletException e){
+			throw new IOException(e);
 		}
 	}
 }

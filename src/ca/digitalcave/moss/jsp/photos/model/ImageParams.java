@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class ImageParams implements Comparable<ImageParams> {
 	private final String imagePath;
-	private final String packageName;
+	private final String galleryName;
 	private final String baseName;
 	private final String extension;
 	private final boolean fullQuality;
@@ -14,10 +14,10 @@ public class ImageParams implements Comparable<ImageParams> {
 	private final String caption;
 	private final Date captureDate;
 	
-	public ImageParams(String imagePath, String packageName, String baseName, String extension, boolean fullQuality, int size, int quality, String title, String caption, Date captureDate) {
+	public ImageParams(String imagePath, String galleryName, String baseName, String extension, boolean fullQuality, int size, int quality, String title, String caption, Date captureDate) {
 		super();
 		this.imagePath = imagePath;
-		this.packageName = packageName;
+		this.galleryName = galleryName;
 		this.baseName = baseName;
 		this.extension = extension;
 		this.fullQuality = fullQuality;
@@ -30,8 +30,8 @@ public class ImageParams implements Comparable<ImageParams> {
 	public String getImagePath() {
 		return imagePath;
 	}
-	public String getPackageName() {
-		return packageName;
+	public String getGalleryName() {
+		return galleryName;
 	}
 	public String getBaseName() {
 		return baseName;

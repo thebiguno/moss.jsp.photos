@@ -1,3 +1,12 @@
+1.5.0.0 - February 8 2011
+-Complete revamp of the virtual galleries.  There are now five defined services:
+	- Converted JPG (used in all other services; converts a single image into a .jpg with specified size and quality)
+	- Index (Shows a Galleria presentation of the gallery; uses a JSP template with 'title', 'headers', 'gallery' request attributes.)
+	- RSS Feed (Returns an RSS feed of the current gallery)
+	- Zip file (Returns a .zip of all original images if full quality downloads are allowed.)  
+	- Single Image (Shows a single image on a web page; uses a JSP template with 'title', 'caption', 'imageSource', 'date' request attributes.  Used as the target for RSS links.)
+-Still includes a gallery taglib, although this is now simplified (only taglib attribute is 'galleryName'; all settings are obtained from the settings.xml index* attributes.)
+
 1.4.2.0 - January 31 2011
 -Added support for RSS feeds (configured via settings.xml).  You must have the element <rss> with attributes "size", "quality", and optionally, "title", and "link".  (Size / quality are just like the other size / quality attributes; title provides a human readable title for the RSS feed, and link gives the user a link to your main page.
 -Added 'showCaption', 'showDate', and 'showFilename' in addition to existing 'showTitle'.  Together these attributes let you customize the info display for a given gallery.
