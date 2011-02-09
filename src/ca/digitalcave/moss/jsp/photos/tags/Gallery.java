@@ -1,5 +1,6 @@
 package ca.digitalcave.moss.jsp.photos.tags;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.PageContext;
 import javax.servlet.jsp.tagext.Tag;
@@ -36,9 +37,15 @@ public class Gallery implements Tag {
 
 	public int doStartTag() throws JspException {
 		try {
-			pageContext.getOut().println(ImageFilter.getGallery(pageContext.getServletContext(), getGalleryName()));
+			HttpServletRequest request = (HttpServletRequest) pageContext.getRequest();
+			
+			request.setAttribute(ImageFilter.ATTR_GALLERY_NAME, galleryName);
+			request.setAttribute(ImageFilter.ATTR_SERVLET_CONTEXT, pageContext.getServletContext());			
+			request.setAttribute(ImageFilter.ATTR_GALLERY_CONFIG, ImageFilter.getGalleryConfig(pageContext.getServletContext(), galleryName));
+			
+			pageContext.getOut().println(ImageFilter.getGallery(request));
 		}
-		catch (Exception e){
+		catch (Throwable e){
 			throw new JspException(e);
 		}
 		return SKIP_BODY;

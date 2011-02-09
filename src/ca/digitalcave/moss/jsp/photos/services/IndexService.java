@@ -35,8 +35,8 @@ public class IndexService implements GalleryService {
 		RequestDispatcher rd = servletContext.getRequestDispatcher(galleryConfig.getIndexTemplate());
 		try {
 			request.setAttribute("title", galleryConfig.getIndexTitle());
-			request.setAttribute("headers", ImageFilter.getPhotoHeaders(servletContext, galleryName));
-			request.setAttribute("gallery", ImageFilter.getGallery(servletContext, galleryName));
+			request.setAttribute("headers", ImageFilter.getPhotoHeaders(request));
+			request.setAttribute("gallery", ImageFilter.getGallery(request));
 			rd.include(request, response);
 		}
 		catch (Exception e){

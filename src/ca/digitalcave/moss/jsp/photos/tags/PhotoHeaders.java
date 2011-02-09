@@ -2,6 +2,7 @@ package ca.digitalcave.moss.jsp.photos.tags;
 
 import java.io.IOException;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.PageContext;
@@ -27,7 +28,10 @@ public class PhotoHeaders implements Tag {
 
 	public int doStartTag() throws JspException {
 		try {
-			pageContext.getOut().println(ImageFilter.getPhotoHeaders(pageContext.getServletContext(), null));
+			HttpServletRequest request = (HttpServletRequest) pageContext.getRequest();			
+			request.setAttribute(ImageFilter.ATTR_SERVLET_CONTEXT, pageContext.getServletContext());			
+			
+			pageContext.getOut().println(ImageFilter.getPhotoHeaders((HttpServletRequest) pageContext.getRequest()));
 		} 
 		catch(IOException ioe) {
 			throw new JspTagException("An IOException occurred.");

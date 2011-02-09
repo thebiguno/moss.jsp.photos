@@ -25,5 +25,16 @@
 			<required>true</required>
 		</attribute>
 	</tag>
+	
+	<tag>
+		<name>index</name>
+		<tag-class>ca.digitalcave.moss.jsp.photos.tags.Index</tag-class>
+		<description>Shows a list of links to galleries, given a root gallery name</description>
+		
+		<attribute>
+			<name>rootGalleryName</name>
+			<required>true</required>
+		</attribute>
+	</tag>
 
 </taglib>

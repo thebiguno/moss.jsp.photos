@@ -10,7 +10,7 @@
 </head>
 <body style="width: 100%; background-color: #000;">
 
-<p:gallery galleryName="/img"/>
+<p:index rootGalleryName="/"/>
 
 </body>
 </html>

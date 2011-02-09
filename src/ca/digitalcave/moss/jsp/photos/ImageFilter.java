@@ -195,13 +195,13 @@ public class ImageFilter implements Filter {
 	}
 
 	public static String getUrlFromFile(ServletContext servletContext, String path, int size, int quality, String extension){
-		String packageName = path.replaceAll("^/WEB-INF/galleries", "").replaceAll("/[^/]+$", "");
+		String galleryName = path.replaceAll("^/WEB-INF/galleries", "").replaceAll("/[^/]+$", "");
 		String baseName = path.replaceAll("^/.*/", "").replaceAll("\\.[a-zA-Z0-9]+", "");
 		String ext = path.replaceAll("^.+\\.", "");
 
 		return (servletContext.getContextPath() 
 				+ ImageFilter.GALLERIES_PATH 
-				+ packageName
+				+ galleryName
 				+ "/"
 				+ baseName 
 				+ ImageFilter.IMAGE_SEPARATOR
@@ -272,7 +272,7 @@ public class ImageFilter implements Filter {
 		.replaceAll("[\r\n]", "\n");
 	}
 
-	private static GalleryConfig getGalleryConfig(ServletContext servletContext, String galleryName) throws UnauthorizedException {
+	public static GalleryConfig getGalleryConfig(ServletContext servletContext, String galleryName) throws UnauthorizedException {
 		final InputStream settings = servletContext.getResourceAsStream("/WEB-INF" + ImageFilter.GALLERIES_PATH + galleryName + "settings.xml");
 		final GalleryConfig galleryConfig = new GalleryConfig();
 		if (settings == null){
@@ -442,19 +442,23 @@ public class ImageFilter implements Filter {
 	public static final String ATTR_GALLERY_NAME = "ca.digitalcave.galleryName";
 
 	private static int galleryNumber = 0;
-	public static String getGallery(ServletContext servletContext, String galleryName) throws UnauthorizedException {
-		StringBuilder sb = new StringBuilder();
-		GalleryConfig galleryConfig = getGalleryConfig(servletContext, galleryName);
+	public static String getGallery(HttpServletRequest request) throws UnauthorizedException {
+		final ServletContext servletContext = (ServletContext) request.getAttribute(ImageFilter.ATTR_SERVLET_CONTEXT);
+		final GalleryConfig galleryConfig = (GalleryConfig) request.getAttribute(ImageFilter.ATTR_GALLERY_CONFIG);
+		final String galleryName = (String) request.getAttribute(ImageFilter.ATTR_GALLERY_NAME);
+		
+		if (servletContext == null || galleryConfig == null || galleryName == null) {
+			return "";
+		}
+		
+		
+		final StringBuilder sb = new StringBuilder();
 
 		if (galleryConfig.isIndexCenter()){
 			sb.append("<div style='margin-left: auto; margin-right: auto; width: ");
 			sb.append(galleryConfig.getIndexSize());
 			sb.append("px;'>");
 		}
-
-		//			if (showRssLink){
-		//				sb.append("<div style='float: right'><a href='" + servletContext.getContextPath() + ImageFilter.GALLERIES_PATH + packageName + "/gallery.xml'><img src='" + pageContext.getServletContext().getContextPath() + ImageFilter.IMAGE_PATH + "/rss/rss.png' alt='Subscribe to RSS Feed' border='none'></a></div><div style='clear: both'/>");
-		//			}
 
 		final int count = galleryNumber++;
 
@@ -581,12 +585,20 @@ public class ImageFilter implements Filter {
 		return sb.toString();
 	}
 	
-	public static String getPhotoHeaders(ServletContext servletContext, String galleryName){
-		StringBuilder sb = new StringBuilder();
+	public static String getPhotoHeaders(HttpServletRequest request){
+		final ServletContext servletContext = (ServletContext) request.getAttribute(ImageFilter.ATTR_SERVLET_CONTEXT);
+		final GalleryConfig galleryConfig = (GalleryConfig) request.getAttribute(ImageFilter.ATTR_GALLERY_CONFIG);
+		final String galleryName = (String) request.getAttribute(ImageFilter.ATTR_GALLERY_NAME);
 		
-		if (galleryName != null){
+		if (servletContext == null) {
+			return "";
+		}
+
+		final StringBuilder sb = new StringBuilder();
+		
+		if (galleryConfig != null && galleryConfig.isShowRss() && galleryName != null){
 			sb.append("<link rel='alternate' type='application/rss+xml' title='RSS Feed for ");
-			sb.append(galleryName.replaceFirst("/", ""));
+			sb.append(galleryName.replace("^/", "").replace("/$", ""));
 			sb.append(" gallery' href='");
 			sb.append(servletContext.getContextPath());
 			sb.append(ImageFilter.GALLERIES_PATH);
