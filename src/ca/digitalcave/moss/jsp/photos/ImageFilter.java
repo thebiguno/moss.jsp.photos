@@ -574,7 +574,7 @@ public class ImageFilter implements Filter {
 		sb.append(galleryConfig.getIndexSize());
 		sb.append("});</script>\n");
 
-		if (galleryConfig.isIndexShowDownload()){
+		if (galleryConfig.isIndexShowDownload() && galleryConfig.isZipAllowed()){
 			sb.append("<p><a href='");
 			sb.append(servletContext.getContextPath());
 			sb.append(ImageFilter.GALLERIES_PATH);
