@@ -579,7 +579,7 @@ public class ImageFilter implements Filter {
 			sb.append(servletContext.getContextPath());
 			sb.append(ImageFilter.GALLERIES_PATH);
 			sb.append(galleryName);
-			sb.append("/index.zip'>Download All High Resolution Images</a></p>");
+			sb.append("index.zip'>Download All High Resolution Images</a></p>");
 		}
 
 		return sb.toString();
