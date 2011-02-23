@@ -465,9 +465,9 @@ public class ImageFilter implements Filter {
 		sb.append("<div id='gallery");
 		sb.append(count);
 		sb.append("' style='width: ");
-		sb.append((int) (galleryConfig.getIndexSize() * 1.1));
+		sb.append(galleryConfig.getIndexSize());
 		sb.append("px; height: ");
-		sb.append((int) (galleryConfig.getIndexSize() * 1.1));
+		sb.append(galleryConfig.getIndexSize() + 150); //Allow for height of bottom bar
 		sb.append("px'>");
 
 		@SuppressWarnings("unchecked")
@@ -562,7 +562,7 @@ public class ImageFilter implements Filter {
 
 		//Thumbnail options
 		sb.append("thumb_crop: false,");
-		sb.append("image_crop: 'width',");
+		sb.append("image_crop: true,");
 
 		//Transition options
 		sb.append("transition: 'flash', transition_speed: 1000,");
@@ -571,7 +571,7 @@ public class ImageFilter implements Filter {
 		sb.append("show_counter: false, min_scale_ratio: 1, max_scale_ratio: 1, width: ");
 		sb.append(galleryConfig.getIndexSize());
 		sb.append(", height: ");
-		sb.append(galleryConfig.getIndexSize());
+		sb.append(galleryConfig.getIndexSize() + 150);
 		sb.append("});</script>\n");
 
 		if (galleryConfig.isIndexShowDownload() && galleryConfig.isZipAllowed()){

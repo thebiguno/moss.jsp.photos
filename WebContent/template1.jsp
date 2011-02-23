@@ -6,7 +6,7 @@
 <title><%= request.getAttribute("title") %></title>
 <%= request.getAttribute("headers") %>
 </head>
-<body style="width: 100%; background-color: #000;">
+<body style="width: 100%; background-color: red;">
 
 <%= request.getAttribute("gallery") %>
 

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <settings>
-	<index template="/template1.jsp" title="Test Title"/>
+	<index template="/template1.jsp" title="Test Title" showDownload="true"/>
 	<singleImage template="/template2.jsp"/>
 	<image maxSize="1000" minSize="100" maxQuality="85" minQuality="50" fullQualityAllowed="true"/>
 	<rss size="600" quality="75" link="http://photos.digitalcave.ca" title="My RSS Feed" description="My RSS Feed's Description"/>

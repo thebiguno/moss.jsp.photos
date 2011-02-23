@@ -1,3 +1,6 @@
+1.5.0.1 - February 22 2011
+-Fixed bug in Galleria height, where part of the (portrait orientation) image would be obscured.
+
 1.5.0.0 - February 8 2011
 -Complete revamp of the virtual galleries.  There are now five defined services:
 	- Converted JPG (used in all other services; converts a single image into a .jpg with specified size and quality)

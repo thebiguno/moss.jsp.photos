@@ -7,7 +7,7 @@
 <title>Insert title here</title>
 
 </head>
-<body style="width: 100%; color: #fff; background-color: #000;">
+<body style="width: 100%; color: #fff; background-color: red;">
 
 <h1><%= request.getAttribute("title") %></h1>
 <p><%= request.getAttribute("caption") %></p>
