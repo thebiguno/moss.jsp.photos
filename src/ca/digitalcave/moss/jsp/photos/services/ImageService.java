@@ -44,7 +44,7 @@ import com.drew.metadata.exif.ExifDirectory;
 
 public class ImageService implements GalleryService {
 
-	private final static ExecutorService executor = new ThreadPoolExecutor(1, 2, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+	private final static ExecutorService executor = new ThreadPoolExecutor(0, 2, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
 	/**
 	 * Given a request URI, returns the image associated with the request.
