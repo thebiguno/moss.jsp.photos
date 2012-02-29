@@ -19,6 +19,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -117,7 +118,13 @@ public class ImageService implements GalleryService {
 		
 		@Override
 		public byte[] call() throws Exception {
-			return convertImage(data, size, "jpg", quality);
+			final long start = System.currentTimeMillis();
+			try {
+				return convertImage(data, size, "jpg", quality);
+			}
+			finally {
+				Logger.getLogger(this.getClass().getName()).fine("Converted image in " + ((System.currentTimeMillis() - start) / 1000f) + " seconds");
+			}
 		}
 	}
 

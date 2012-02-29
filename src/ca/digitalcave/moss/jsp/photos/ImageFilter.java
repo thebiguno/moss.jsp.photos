@@ -29,14 +29,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.drew.imaging.jpeg.JpegMetadataReader;
-import com.drew.metadata.Directory;
-import com.drew.metadata.Metadata;
-import com.drew.metadata.exif.ExifDirectory;
-import com.drew.metadata.iptc.IptcDirectory;
-
+import ca.digitalcave.moss.common.LogUtil;
 import ca.digitalcave.moss.common.StreamUtil;
 import ca.digitalcave.moss.jsp.photos.exception.UnauthorizedException;
+import ca.digitalcave.moss.jsp.photos.model.Config;
+import ca.digitalcave.moss.jsp.photos.model.ConfigFactory;
 import ca.digitalcave.moss.jsp.photos.model.GalleryConfig;
 import ca.digitalcave.moss.jsp.photos.model.ImageParams;
 import ca.digitalcave.moss.jsp.photos.services.ImageService;
@@ -45,16 +42,25 @@ import ca.digitalcave.moss.jsp.photos.services.RssService;
 import ca.digitalcave.moss.jsp.photos.services.SingleImageService;
 import ca.digitalcave.moss.jsp.photos.services.ZipFileService;
 
+import com.drew.imaging.jpeg.JpegMetadataReader;
+import com.drew.metadata.Directory;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.ExifDirectory;
+import com.drew.metadata.iptc.IptcDirectory;
+
 public class ImageFilter implements Filter {
-	private FilterConfig config;
+	private FilterConfig filterConfig;
+	private Config config = null;
+	private long lastConfigLoad = 0;
+
 	private final static String CSS_PATH = "/css";
 	public final static String IMAGE_PATH = "/images";
 	public final static String JAVASCRIPT_PATH = "/js";
 	public final static String GALLERIES_PATH = "/galleries";
 	public final static String IMAGE_SEPARATOR = "%3A";
 
-	public void init(FilterConfig config) throws ServletException {
-		this.config = config;
+	public void init(FilterConfig filterConfig) throws ServletException {
+		this.filterConfig = filterConfig;
 	}
 
 	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
@@ -64,11 +70,17 @@ public class ImageFilter implements Filter {
 			return;
 		}
 
+		if (config == null || lastConfigLoad + 60000 < System.currentTimeMillis()){
+			config = ConfigFactory.loadConfig(filterConfig);
+			lastConfigLoad = System.currentTimeMillis();
+			LogUtil.setLogLevel(config.getLogLevel());
+		}
+		
 		final HttpServletRequest request = (HttpServletRequest) req;
 		final HttpServletResponse response = (HttpServletResponse) res;
 
 		final String requestURI = request.getRequestURI();
-		ServletContext servletContext = config.getServletContext();
+		ServletContext servletContext = filterConfig.getServletContext();
 		final String contextPath = servletContext.getContextPath();
 
 		//Built in script / style components

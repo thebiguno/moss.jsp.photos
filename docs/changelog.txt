@@ -1,3 +1,6 @@
+1.5.1.0 - February 28 2012
+-Added a config file; currently it only has log level in it, but there is room for more (number of executors, etc).
+
 1.5.0.1 - February 22 2011
 -Fixed bug in Galleria height, where part of the (portrait orientation) image would be obscured.
 
