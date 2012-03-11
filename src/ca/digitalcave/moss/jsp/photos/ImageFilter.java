@@ -90,6 +90,8 @@ public class ImageFilter implements Filter {
 				InputStream is = ImageFilter.class.getResourceAsStream("resources/" + name);
 				if (is != null){
 					StreamUtil.copyStream(is, res.getOutputStream());
+					if (ImageFilter.JAVASCRIPT_PATH.equals(path)) response.setContentType("application/x-javascript");
+					else if (ImageFilter.CSS_PATH.equals(path)) response.setContentType("text/css");
 					return;
 				}
 			}
