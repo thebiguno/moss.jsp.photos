@@ -11,7 +11,7 @@ import javax.servlet.jsp.tagext.Tag;
 
 import ca.digitalcave.moss.jsp.photos.ImageFilter;
 import ca.digitalcave.moss.jsp.photos.exception.UnauthorizedException;
-import ca.digitalcave.moss.jsp.photos.model.GalleryConfig;
+import ca.digitalcave.moss.jsp.photos.model.GallerySettings;
 
 public class Index implements Tag {
 	private PageContext pageContext = null;
@@ -55,7 +55,7 @@ public class Index implements Tag {
 				//We check if there is a settings.xml in the folder; this verifies that a) it actually is a gallery, and b) that we can load something from it.
 				try {
 					gallery = gallery.replaceAll("^/WEB-INF" + ImageFilter.GALLERIES_PATH, "");
-					GalleryConfig galleryConfig = ImageFilter.getGalleryConfig(servletContext, gallery);
+					GallerySettings galleryConfig = ImageFilter.getGalleryConfig(servletContext, gallery);
 					if (galleryConfig.isShowIndex()){
 						pageContext.getOut().println("<li><a href='" + contextPath + ImageFilter.GALLERIES_PATH + gallery + "index.html'>" + galleryConfig.getIndexTitle() + "</a></li>");
 					}

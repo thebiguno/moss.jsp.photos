@@ -34,7 +34,7 @@ import ca.digitalcave.moss.common.StreamUtil;
 import ca.digitalcave.moss.jsp.photos.exception.UnauthorizedException;
 import ca.digitalcave.moss.jsp.photos.model.Config;
 import ca.digitalcave.moss.jsp.photos.model.ConfigFactory;
-import ca.digitalcave.moss.jsp.photos.model.GalleryConfig;
+import ca.digitalcave.moss.jsp.photos.model.GallerySettings;
 import ca.digitalcave.moss.jsp.photos.model.ImageParams;
 import ca.digitalcave.moss.jsp.photos.services.ImageService;
 import ca.digitalcave.moss.jsp.photos.services.IndexService;
@@ -86,6 +86,8 @@ public class ImageFilter implements Filter {
 		//Built in script / style components
 		for (String path : new String[]{ImageFilter.JAVASCRIPT_PATH, ImageFilter.CSS_PATH, ImageFilter.IMAGE_PATH}) {
 			if (requestURI.matches(contextPath + path + "/.*\\.[a-zA-Z]{2,3}")){
+				if (requestURI.endsWith(".js")) res.setContentType("text/javascript");
+				else if (requestURI.endsWith(".css")) res.setContentType("text/css");
 				String name = requestURI.replaceAll(contextPath + path + "/", "");
 				InputStream is = ImageFilter.class.getResourceAsStream("resources/" + name);
 				if (is != null){
@@ -103,7 +105,7 @@ public class ImageFilter implements Filter {
 			final String galleryName = requestURI.replaceAll("^" + contextPath + ImageFilter.GALLERIES_PATH, "").replaceAll("[^/]+$", "");
 
 			try {
-				GalleryConfig galleryConfig = getGalleryConfig(servletContext, galleryName);
+				GallerySettings galleryConfig = getGalleryConfig(servletContext, galleryName);
 
 				request.setAttribute(ImageFilter.ATTR_GALLERY_CONFIG, galleryConfig);
 				request.setAttribute(ImageFilter.ATTR_GALLERY_NAME, galleryName);
@@ -286,12 +288,12 @@ public class ImageFilter implements Filter {
 		.replaceAll("[\r\n]", "\n");
 	}
 
-	public static GalleryConfig getGalleryConfig(ServletContext servletContext, String galleryName) throws UnauthorizedException {
+	public static GallerySettings getGalleryConfig(ServletContext servletContext, String galleryName) throws UnauthorizedException {
 		final InputStream settings = servletContext.getResourceAsStream("/WEB-INF" + ImageFilter.GALLERIES_PATH + galleryName + "settings.xml");
-		final GalleryConfig galleryConfig = new GalleryConfig();
+		final GallerySettings galleryConfig = new GallerySettings();
 		if (settings == null){
 			//You must have a settings.xml file, or you cannot access the content.
-			throw new UnauthorizedException("Settings file not found");
+			throw new UnauthorizedException("Settings file not found for gallery '" + galleryName + "'");
 		}
 		else {
 			try {
@@ -458,7 +460,7 @@ public class ImageFilter implements Filter {
 	private static int galleryNumber = 0;
 	public static String getGallery(HttpServletRequest request) throws UnauthorizedException {
 		final ServletContext servletContext = (ServletContext) request.getAttribute(ImageFilter.ATTR_SERVLET_CONTEXT);
-		final GalleryConfig galleryConfig = (GalleryConfig) request.getAttribute(ImageFilter.ATTR_GALLERY_CONFIG);
+		final GallerySettings galleryConfig = (GallerySettings) request.getAttribute(ImageFilter.ATTR_GALLERY_CONFIG);
 		final String galleryName = (String) request.getAttribute(ImageFilter.ATTR_GALLERY_NAME);
 		
 		if (servletContext == null || galleryConfig == null || galleryName == null) {
@@ -471,7 +473,7 @@ public class ImageFilter implements Filter {
 		if (galleryConfig.isIndexCenter()){
 			sb.append("<div style='margin-left: auto; margin-right: auto; width: ");
 			sb.append(galleryConfig.getIndexSize());
-			sb.append("px;'>");
+			sb.append("px;'>\n");
 		}
 
 		final int count = galleryNumber++;
@@ -482,7 +484,7 @@ public class ImageFilter implements Filter {
 		sb.append(galleryConfig.getIndexSize());
 		sb.append("px; height: ");
 		sb.append(galleryConfig.getIndexSize() + 150); //Allow for height of bottom bar
-		sb.append("px'>");
+		sb.append("px'>\n");
 
 		@SuppressWarnings("unchecked")
 		List<String> images = new ArrayList<String>(servletContext.getResourcePaths("/WEB-INF" + ImageFilter.GALLERIES_PATH + galleryName));
@@ -556,9 +558,10 @@ public class ImageFilter implements Filter {
 			sb.append("</div> <!-- center -->\n");
 		}
 
-		sb.append("<script type='text/javascript'>$('#gallery");
+		sb.append("<script type='text/javascript'>\n");
+		sb.append("Galleria.run('#gallery");
 		sb.append(count);
-		sb.append("').galleria({");
+		sb.append("', {");
 
 		if (galleryConfig.isIndexSlideshow()){
 			sb.append("autoplay: ");
@@ -566,7 +569,7 @@ public class ImageFilter implements Filter {
 			sb.append(",");
 			if (!galleryConfig.isIndexSlideshowOverride()){
 				sb.append("thumbnails: false,");
-				sb.append("show_imagenav: false,");
+				sb.append("showImagenav: false,");
 				//sb.append("pause_on_interaction: false, ");
 			}
 		}
@@ -575,18 +578,20 @@ public class ImageFilter implements Filter {
 		}
 
 		//Thumbnail options
-		sb.append("thumb_crop: false,");
-		sb.append("image_crop: true,");
+		sb.append("thumbCrop: false,");
+		sb.append("imageCrop: true,");
 
 		//Transition options
-		sb.append("transition: 'flash', transition_speed: 1000,");
+		sb.append("transition: 'fadeslide', transition_speed: 1000,");
 
 		//Common settings 
-		sb.append("show_counter: false, min_scale_ratio: 1, max_scale_ratio: 1, width: ");
+		sb.append("showCounter: false, minScaleRatio: 1, maxScaleRatio: 1, width: ");
 		sb.append(galleryConfig.getIndexSize());
 		sb.append(", height: ");
 		sb.append(galleryConfig.getIndexSize() + 150);
-		sb.append("});</script>\n");
+		sb.append("});\n");
+
+		sb.append("</script>\n");
 
 		if (galleryConfig.isIndexShowDownload() && galleryConfig.isZipAllowed()){
 			sb.append("<p><a href='");
@@ -601,7 +606,7 @@ public class ImageFilter implements Filter {
 	
 	public static String getPhotoHeaders(HttpServletRequest request){
 		final ServletContext servletContext = (ServletContext) request.getAttribute(ImageFilter.ATTR_SERVLET_CONTEXT);
-		final GalleryConfig galleryConfig = (GalleryConfig) request.getAttribute(ImageFilter.ATTR_GALLERY_CONFIG);
+		final GallerySettings galleryConfig = (GallerySettings) request.getAttribute(ImageFilter.ATTR_GALLERY_CONFIG);
 		final String galleryName = (String) request.getAttribute(ImageFilter.ATTR_GALLERY_NAME);
 		
 		if (servletContext == null) {
@@ -625,12 +630,12 @@ public class ImageFilter implements Filter {
 		sb.append("<script type='text/javascript' src='");
 		sb.append(servletContext.getContextPath());
 		sb.append(ImageFilter.JAVASCRIPT_PATH);
-		sb.append("/galleria/galleria.js'></script>\n");
+		sb.append("/galleria/galleria-1.2.8.min.js'></script>\n");
 		
 		sb.append("<script type='text/javascript' src='");
 		sb.append(servletContext.getContextPath());
 		sb.append(ImageFilter.JAVASCRIPT_PATH);
-		sb.append("/galleria-themes/classic-modified/galleria.classic.js'></script>\n");
+		sb.append("/galleria/themes/classic/galleria.classic.min.js'></script>\n");
 
 		return sb.toString();
 	}

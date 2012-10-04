@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import ca.digitalcave.moss.jsp.photos.ImageFilter;
 import ca.digitalcave.moss.jsp.photos.exception.UnauthorizedException;
-import ca.digitalcave.moss.jsp.photos.model.GalleryConfig;
+import ca.digitalcave.moss.jsp.photos.model.GallerySettings;
 import ca.digitalcave.moss.jsp.photos.model.ImageParams;
 
 import com.sun.syndication.feed.synd.SyndContent;
@@ -29,7 +29,7 @@ public class RssService implements GalleryService {
 	@SuppressWarnings("unchecked")
 	public void doServe(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		final ServletContext servletContext = (ServletContext) request.getAttribute(ImageFilter.ATTR_SERVLET_CONTEXT);
-		final GalleryConfig galleryConfig = (GalleryConfig) request.getAttribute(ImageFilter.ATTR_GALLERY_CONFIG);
+		final GallerySettings galleryConfig = (GallerySettings) request.getAttribute(ImageFilter.ATTR_GALLERY_CONFIG);
 		final String galleryName = (String) request.getAttribute(ImageFilter.ATTR_GALLERY_NAME);
 		
 		if (servletContext == null || galleryConfig == null || galleryName == null) {

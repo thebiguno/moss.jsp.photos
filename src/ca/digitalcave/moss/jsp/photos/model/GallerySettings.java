@@ -1,6 +1,6 @@
 package ca.digitalcave.moss.jsp.photos.model;
 
-public class GalleryConfig {
+public class GallerySettings {
 	private String indexTemplate;
 	private String indexTitle;
 	private int indexSize;

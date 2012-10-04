@@ -1,82 +1,95 @@
-/*
- * Galleria Classic Theme v. 1.5 2010-10-28
- * http://galleria.aino.se
+/**
+ * Galleria Classic Theme 2012-08-08
+ * http://galleria.io
  *
- * Copyright (c) 2010, Aino
- * Licensed under the MIT license.
+ * Licensed under the MIT license
+ * https://raw.github.com/aino/galleria/master/LICENSE
+ *
  */
 
 (function($) {
 
+/*global jQuery, Galleria */
+
 Galleria.addTheme({
     name: 'classic',
     author: 'Galleria',
-    version: '1.5',
     css: 'galleria.classic.css',
     defaults: {
         transition: 'slide',
-        thumb_crop: 'height',
-        
-		// set this to false if you want to show the caption all the time:
-        _toggle_info: true
+        thumbCrop:  'height',
+
+        // set this to false if you want to show the caption all the time:
+        _toggleInfo: true
     },
     init: function(options) {
-        
+
+        Galleria.requires(1.28, 'This version of Classic theme requires Galleria 1.2.8 or later');
+
         // add some elements
         this.addElement('info-link','info-close');
         this.append({
             'info' : ['info-link','info-close']
         });
-        
+
         // cache some stuff
-        var toggle   = this.$('image-nav-left,image-nav-right,counter'),
-            info     = this.$('info-link,info-close,info-text'),
-            click    = Galleria.TOUCH ? 'touchstart' : 'click';
-        
+        var info = this.$('info-link,info-close,info-text'),
+            touch = Galleria.TOUCH,
+            click = touch ? 'touchstart' : 'click';
+
         // show loader & counter with opacity
-        this.$('loader,counter').show().css('opacity',.4)
+        this.$('loader,counter').show().css('opacity', 0.4);
 
         // some stuff for non-touch browsers
-        if (! Galleria.TOUCH ) {
-            
-            // fade thumbnails
-            this.$('thumbnails').children().hover(function() {
-                $(this).not('.active').children().stop().fadeTo(100, 1);
-            }, function() {
-                $(this).not('.active').children().stop().fadeTo(400, .6);
-            });
-            
+        if (! touch ) {
             this.addIdleState( this.get('image-nav-left'), { left:-50 });
             this.addIdleState( this.get('image-nav-right'), { right:-50 });
             this.addIdleState( this.get('counter'), { opacity:0 });
         }
-        
+
         // toggle info
-        if ( options._toggle_info ) {
+        if ( options._toggleInfo === true ) {
             info.bind( click, function() {
                 info.toggle();
             });
+        } else {
+            info.show();
+            this.$('info-link, info-close').hide();
         }
-        
+
         // bind some stuff
-        this.bind(Galleria.THUMBNAIL, function(e) {
-            $(e.thumbTarget).parent(':not(.active)').children().css('opacity',.6)
-        });
-        
-        this.bind(Galleria.LOADSTART, function(e) {
-            if (!e.cached) {
-                this.$('loader').show().fadeTo(200, .4);
+        this.bind('thumbnail', function(e) {
+
+            if (! touch ) {
+                // fade thumbnails
+                $(e.thumbTarget).css('opacity', 0.6).parent().hover(function() {
+                    $(this).not('.active').children().stop().fadeTo(100, 1);
+                }, function() {
+                    $(this).not('.active').children().stop().fadeTo(400, 0.6);
+                });
+
+                if ( e.index === this.getIndex() ) {
+                    $(e.thumbTarget).css('opacity',1);
+                }
+            } else {
+                $(e.thumbTarget).css('opacity', this.getIndex() ? 1 : 0.6);
             }
-            
-            this.$('info').toggle( this.hasInfo() );
-            
-            $(e.thumbTarget).css('opacity',1).parent().siblings().children().css('opacity',.6);
         });
-        
-        this.bind(Galleria.LOADFINISH, function(e) {
+
+        this.bind('loadstart', function(e) {
+            if (!e.cached) {
+                this.$('loader').show().fadeTo(200, 0.4);
+            }
+
+            this.$('info').toggle( this.hasInfo() );
+
+            $(e.thumbTarget).css('opacity',1).parent().siblings().children().css('opacity', 0.6);
+        });
+
+        this.bind('loadfinish', function(e) {
             this.$('loader').fadeOut(200);
         });
     }
 });
 
-})(jQuery);
+}(jQuery));

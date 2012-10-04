@@ -19,6 +19,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.imageio.IIOImage;
@@ -46,6 +47,7 @@ import com.drew.metadata.exif.ExifDirectory;
 public class ImageService implements GalleryService {
 
 	private final static ExecutorService executor = new ThreadPoolExecutor(0, 3, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+	private final Logger logger = Logger.getLogger(this.getClass().getName());
 
 	/**
 	 * Given a request URI, returns the image associated with the request.
@@ -84,11 +86,16 @@ public class ImageService implements GalleryService {
 				byte[] convertedImage = null;
 
 				try {
+					logger.fine("Converting image " + request.getRequestURI() + "; " + ((ThreadPoolExecutor) executor).getQueue().size() + " items already in the executor queue.");
+					final long start = System.currentTimeMillis();
 					ImageConverterCallable callable = new ImageConverterCallable(baos.toByteArray(), ip.getSize(), ip.getQuality());
 					Future<byte[]> future = executor.submit(callable);
 					convertedImage = future.get();
+					logger.fine("Converted image " + request.getRequestURI() + " in " + ((System.currentTimeMillis() - start) / 1000f) + " seconds; " + ((ThreadPoolExecutor) executor).getQueue().size() + " items remain in the executor queue.");
 				}
-				catch (Exception e){}
+				catch (Exception e){
+					logger.log(Level.WARNING, "Error while converting image", e);
+				}
 				
 				if (convertedImage != null)
 					StreamUtil.copyStream(new ByteArrayInputStream(convertedImage), response.getOutputStream());
@@ -118,13 +125,7 @@ public class ImageService implements GalleryService {
 		
 		@Override
 		public byte[] call() throws Exception {
-			final long start = System.currentTimeMillis();
-			try {
-				return convertImage(data, size, "jpg", quality);
-			}
-			finally {
-				Logger.getLogger(this.getClass().getName()).fine("Converted image in " + ((System.currentTimeMillis() - start) / 1000f) + " seconds");
-			}
+			return convertImage(data, size, "jpg", quality);
 		}
 	}
 
@@ -240,7 +241,10 @@ public class ImageService implements GalleryService {
 	}
 
 	private BufferedImage getBufferedImage(Image img){
-		BufferedImage bi = new BufferedImage(img.getWidth(null),img.getHeight(null),BufferedImage.TYPE_INT_RGB);
+		if (img instanceof BufferedImage) return (BufferedImage) img;
+		
+		logger.finest("Image is not an instance of BufferedImage and must be converted");
+		BufferedImage bi = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_RGB);
 		Graphics bg = bi.getGraphics();
 		bg.drawImage(img, 0, 0, null);
 		bg.dispose();

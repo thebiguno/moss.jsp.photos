@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import ca.digitalcave.moss.jsp.photos.ImageFilter;
 import ca.digitalcave.moss.jsp.photos.exception.UnauthorizedException;
-import ca.digitalcave.moss.jsp.photos.model.GalleryConfig;
+import ca.digitalcave.moss.jsp.photos.model.GallerySettings;
 import ca.digitalcave.moss.jsp.photos.model.ImageParams;
 
 public class SingleImageService implements GalleryService {
@@ -23,7 +23,7 @@ public class SingleImageService implements GalleryService {
 	public void doServe(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
 		final ServletContext servletContext = (ServletContext) request.getAttribute(ImageFilter.ATTR_SERVLET_CONTEXT);
-		final GalleryConfig galleryConfig = (GalleryConfig) request.getAttribute(ImageFilter.ATTR_GALLERY_CONFIG);
+		final GallerySettings galleryConfig = (GallerySettings) request.getAttribute(ImageFilter.ATTR_GALLERY_CONFIG);
 		
 		if (servletContext == null || galleryConfig == null) {
 			throw new IOException("Required values not in request attribtues");

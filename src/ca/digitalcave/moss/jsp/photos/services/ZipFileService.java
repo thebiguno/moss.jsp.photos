@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import ca.digitalcave.moss.common.StreamUtil;
 import ca.digitalcave.moss.jsp.photos.ImageFilter;
-import ca.digitalcave.moss.jsp.photos.model.GalleryConfig;
+import ca.digitalcave.moss.jsp.photos.model.GallerySettings;
 
 public class ZipFileService implements GalleryService {
 	/**
@@ -31,7 +31,7 @@ public class ZipFileService implements GalleryService {
 	@SuppressWarnings("unchecked")
 	public void doServe(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		final ServletContext servletContext = (ServletContext) request.getAttribute(ImageFilter.ATTR_SERVLET_CONTEXT);
-		final GalleryConfig galleryConfig = (GalleryConfig) request.getAttribute(ImageFilter.ATTR_GALLERY_CONFIG);
+		final GallerySettings galleryConfig = (GallerySettings) request.getAttribute(ImageFilter.ATTR_GALLERY_CONFIG);
 		final String galleryName = (String) request.getAttribute(ImageFilter.ATTR_GALLERY_NAME);
 		
 		if (servletContext == null || galleryConfig == null || galleryName == null) {
