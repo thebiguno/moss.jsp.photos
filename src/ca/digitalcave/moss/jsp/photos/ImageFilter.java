@@ -571,7 +571,7 @@ public class ImageFilter implements Filter {
 			sb.append(",");
 			if (!galleryConfig.isIndexSlideshowOverride()){
 				sb.append("thumbnails: false,");
-				sb.append("showImagenav: false");
+				sb.append("showImagenav: false,");
 			}
 		}
 		else {
