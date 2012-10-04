@@ -1,3 +1,6 @@
+1.6.0.0 - October 4 2012
+-Updated Galleria to current version, now with better support for mobile devices (swipe, etc)
+
 1.5.1.0 - February 28 2012
 -Added a config file; currently it only has log level in it, but there is room for more (number of executors, etc).
 
