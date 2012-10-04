@@ -73,7 +73,7 @@ public class ImageFilter implements Filter {
 		if (config == null || lastConfigLoad + 60000 < System.currentTimeMillis()){
 			config = ConfigFactory.loadConfig(filterConfig);
 			lastConfigLoad = System.currentTimeMillis();
-			LogUtil.setLogLevel(config.getLogLevel());
+			if (config != null) LogUtil.setLogLevel(config.getLogLevel());
 		}
 		
 		final HttpServletRequest request = (HttpServletRequest) req;

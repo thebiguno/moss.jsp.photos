@@ -8,7 +8,7 @@ public class Config {
 
 	@XStreamAsAttribute
 	@XStreamAlias("log-level")
-	private String logLevel;
+	private String logLevel = "INFO";
 
 	public String getLogLevel() {
 		return logLevel;
