@@ -25,6 +25,9 @@ import javax.servlet.jsp.PageContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -497,100 +500,100 @@ public class ImageFilter implements Filter {
 			}
 		}
 
+		final JSONArray data = new JSONArray();
 		for (String imagePath : images) {
 			try {
 				final int thumbSize = galleryConfig.getIndexThumbSize();
-
 				if (imagePath.toLowerCase().matches(MATCH_REGEX) && !imagePath.toLowerCase().matches(EXCLUDE_REGEX)){
-					String imageURI = getUrlFromFile(servletContext, imagePath, galleryConfig.getIndexSize(), galleryConfig.getIndexQuality(), "jpg");
-					if (galleryConfig.getIndexThumbSize() != 0){					
-						sb.append("<a href='");
-						sb.append(imageURI);
-						sb.append("'>");
-					}
+					final JSONObject image = new JSONObject();
+					try {
+						final String imageURI = getUrlFromFile(servletContext, imagePath, galleryConfig.getIndexSize(), galleryConfig.getIndexQuality(), "jpg");
+						final ImageParams imageParams = getImageParams(imagePath, imageURI, servletContext);
+						image.put("image", imageURI);
 
-					ImageParams imageParams = getImageParams(imagePath, imageURI, servletContext);
+						image.put("thumb", getUrlFromFile(servletContext, imagePath, (thumbSize == 0 ? galleryConfig.getIndexSize() : thumbSize), (thumbSize == 0 ? galleryConfig.getIndexQuality() : galleryConfig.getIndexThumbQuality()), "jpg"));
+						if (galleryConfig.isIndexShowTitle() && imageParams.getTitle() != null){
+							image.put("title", imageParams.getTitle());
+						}
 
-					sb.append("<img src='");
-					sb.append(getUrlFromFile(servletContext, imagePath, (thumbSize == 0 ? galleryConfig.getIndexSize() : thumbSize), (thumbSize == 0 ? galleryConfig.getIndexQuality() : galleryConfig.getIndexThumbQuality()), "jpg"));
-					sb.append("'");
-					StringBuilder info = new StringBuilder();
-					if (galleryConfig.isIndexShowTitle() && imageParams.getTitle() != null){
-						sb.append(" title='");
-						sb.append(escapeHtml(imageParams.getTitle())); 
-						sb.append("'");
-					}
+						StringBuilder info = new StringBuilder();
+						if (galleryConfig.isIndexShowCaption() && imageParams.getCaption() != null){
+							info.append("<p>").append(imageParams.getCaption()).append("</p>");
+						}
+						if (galleryConfig.isIndexShowDate() && imageParams.getCaptureDate() != null){
+							info.append("<p>").append(new SimpleDateFormat("yyyy-MM-dd").format(imageParams.getCaptureDate())).append("</p>");
+						}					
+						if (galleryConfig.isIndexShowFilename()){
+							final String filename = imagePath.replaceAll("^/.*/", "");
+							info.append("<p>").append(escapeHtml(filename)).append("</p>");
+						}
+						if (info.length() > 0){
+							image.put("description", info);
+						}
 
-					if (galleryConfig.isIndexShowCaption() && imageParams.getCaption() != null){
-						info.append("<p>").append(escapeHtml(imageParams.getCaption())).append("</p>");
+						if (galleryConfig.isIndexShowDownload()){
+							image.put("link", getFullQualityUrlFromFile(servletContext, imagePath));
+						}
+						data.put(image);
 					}
-
-					if (galleryConfig.isIndexShowDate() && imageParams.getCaptureDate() != null){
-						info.append("<p>").append(new SimpleDateFormat("yyyy-MM-dd").format(imageParams.getCaptureDate())).append("</p>");
-					}					
-
-					if (galleryConfig.isIndexShowFilename()){
-						final String filename = imagePath.replaceAll("^/.*/", "");
-						info.append("<p>").append(escapeHtml(filename)).append("</p>");
-					}
-
-					if (info.length() > 0){
-						sb.append(" alt='");
-						sb.append(info); 
-						sb.append("'");
-					}
-					if (galleryConfig.isIndexShowDownload()){
-						sb.append(" longdesc='");
-						sb.append(getFullQualityUrlFromFile(servletContext, imagePath));
-						sb.append("'");
-					}
-					sb.append("></img>\n");
-					if (galleryConfig.getIndexThumbSize() != 0){
-						sb.append("</a>\n");
+					catch (JSONException e){
+						;
 					}
 				}
 			}
 			catch (UnauthorizedException e){}
-		}			
-
+		}
+		
 		sb.append("</div> <!-- gallery -->\n");
 		if (galleryConfig.isIndexCenter()){
 			sb.append("</div> <!-- center -->\n");
 		}
 
 		sb.append("<script type='text/javascript'>\n");
+
+		JSONObject configuration = new JSONObject();
+		try {
+			configuration.put("dataSource", data);
+			configuration.put("debug", false);
+			configuration.put("pauseOnInteraction", false);
+
+			if (galleryConfig.isIndexSlideshow()){
+				configuration.put("autoplay", galleryConfig.getIndexSlideshowDelay());
+				if (!galleryConfig.isIndexSlideshowOverride()){
+					configuration.put("thumbnails", false);
+					configuration.put("showImagenav", false);
+					configuration.put("swipe", false);
+				}
+			}
+			else {
+				configuration.put("autoplay", false);
+			}
+
+			//Thumbnail options
+			configuration.put("thumbCrop", false);
+			configuration.put("imageCrop", true);
+
+			//Transition options
+			configuration.put("touchTransistion", "slide");
+			configuration.put("transition", "fadeslide");
+			configuration.put("transitionSpeed", 500);
+
+			//Common settings 
+			configuration.put("showCounter", false);
+			configuration.put("minScaleRatio", 1);
+			configuration.put("maxScaleRatio", 1);
+			configuration.put("width", galleryConfig.getIndexSize());
+			configuration.put("height", galleryConfig.getIndexSize() + 150);
+		}
+		catch (JSONException e){
+			;
+		}
+		
 		sb.append("Galleria.run('#gallery");
 		sb.append(count);
-		sb.append("', {");
-
-		sb.append("debug: false,");
-		sb.append("pauseOnInteraction: false,");
-		if (galleryConfig.isIndexSlideshow()){
-			sb.append("autoplay: ");
-			sb.append(galleryConfig.getIndexSlideshowDelay());
-			sb.append(",");
-			if (!galleryConfig.isIndexSlideshowOverride()){
-				sb.append("thumbnails: false,");
-				sb.append("showImagenav: false,");
-			}
-		}
-		else {
-			sb.append("autoplay: false,");
-		}
-
-		//Thumbnail options
-		sb.append("thumbCrop: false,");
-		sb.append("imageCrop: true,");
-
-		//Transition options
-		sb.append("touchTransistion: 'slide', transition: 'fadeslide', transition_speed: 500,");
-
-		//Common settings 
-		sb.append("showCounter: false, minScaleRatio: 1, maxScaleRatio: 1, width: ");
-		sb.append(galleryConfig.getIndexSize());
-		sb.append(", height: ");
-		sb.append(galleryConfig.getIndexSize() + 150);
-		sb.append("});\n");
+		sb.append("', ");
+		sb.append(configuration.toString());
+		sb.append(");\n");
 
 		sb.append("</script>\n");
 
