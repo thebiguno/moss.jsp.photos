@@ -563,6 +563,8 @@ public class ImageFilter implements Filter {
 		sb.append(count);
 		sb.append("', {");
 
+		sb.append("debug: false,");
+		sb.append("pauseOnInteraction: false,");
 		if (galleryConfig.isIndexSlideshow()){
 			sb.append("autoplay: ");
 			sb.append(galleryConfig.getIndexSlideshowDelay());
@@ -570,7 +572,6 @@ public class ImageFilter implements Filter {
 			if (!galleryConfig.isIndexSlideshowOverride()){
 				sb.append("thumbnails: false,");
 				sb.append("showImagenav: false,");
-				//sb.append("pause_on_interaction: false, ");
 			}
 		}
 		else {
@@ -582,7 +583,7 @@ public class ImageFilter implements Filter {
 		sb.append("imageCrop: true,");
 
 		//Transition options
-		sb.append("transition: 'fadeslide', transition_speed: 1000,");
+		sb.append("touchTransistion: 'slide', transition: 'fadeslide', transition_speed: 500,");
 
 		//Common settings 
 		sb.append("showCounter: false, minScaleRatio: 1, maxScaleRatio: 1, width: ");
