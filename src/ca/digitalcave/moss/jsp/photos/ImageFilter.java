@@ -629,7 +629,7 @@ public class ImageFilter implements Filter {
 			sb.append("/index.xml' />\n");
 		}
 		
-		sb.append("<script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js'></script>\n");
+		sb.append("<script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js'></script>\n");
 		
 		sb.append("<script type='text/javascript' src='");
 		sb.append(servletContext.getContextPath());
