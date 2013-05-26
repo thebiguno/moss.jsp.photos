@@ -60,7 +60,7 @@ public class ImageFilter implements Filter {
 	public final static String IMAGE_PATH = "/images";
 	public final static String JAVASCRIPT_PATH = "/js";
 	public final static String GALLERIES_PATH = "/galleries";
-	public final static String IMAGE_SEPARATOR = "%3A";
+	public final static String IMAGE_SEPARATOR = "%7B";
 
 	public void init(FilterConfig filterConfig) throws ServletException {
 		this.filterConfig = filterConfig;
